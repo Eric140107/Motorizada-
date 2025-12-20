@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=no, viewport-fit=cover">
-    <title>Project Red - v28.5 Fixed</title>
+    <title>Project Red - Ultimate v28.6</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#FF0033">
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
@@ -19,6 +19,7 @@
         body.blackout-mode #floating-bubble { top: 50% !important; left: 50% !important; transform: translate(-50%, -50%) scale(2.8) !important; border-color: #111; }
         #btn-exit-blackout { position: fixed; top: 30px; left: 50%; transform: translateX(-50%); z-index: 9999; display: none; background: var(--accent); color: #fff; border: none; padding: 12px 24px; border-radius: 30px; font-family: 'Orbitron'; font-size: 10px; }
         body.blackout-mode #btn-exit-blackout { display: block; }
+        #status-pwa { position: fixed; top: 0; width: 100%; padding: 4px; background: var(--green); color: #000; font-size: 8px; text-align: center; font-weight: 900; z-index: 10000; display: none; }
 
         /* HUD BOLHA */
         #floating-bubble { position: fixed; top: 80px; right: 20px; width: 85px; height: 85px; background: rgba(15,15,15,0.95); border: 2px solid var(--accent); border-radius: 50%; z-index: 9000; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 0 25px rgba(255,0,51,0.5); backdrop-filter: blur(10px); touch-action: none; }
@@ -42,7 +43,7 @@
         .bottom-sheet { position: fixed; bottom: -110%; left: 0; right: 0; background: #0c0c0c; border-radius: 30px 30px 0 0; padding: 25px; transition: 0.4s cubic-bezier(0.32, 0.72, 0, 1); z-index: 5000; max-height: 85vh; overflow-y: auto; border-top: 1px solid var(--border); }
         .bottom-sheet.show { bottom: 0; }
         .stat-card { background: rgba(255,255,255,0.03); padding: 15px; border-radius: 15px; border: 1px solid var(--border); margin-bottom: 10px; }
-        input, select { width: 100%; background: rgba(255,255,255,0.05); border: 1px solid var(--border); padding: 15px; color: #fff; border-radius: 12px; margin-bottom: 10px; outline: none; }
+        input, select { width: 100%; background: rgba(255,255,255,0.05); border: 1px solid var(--border); padding: 15px; color: #fff; border-radius: 12px; margin-bottom: 10px; outline: none; font-size: 16px; }
         .btn-main { background: var(--accent); color: white; padding: 18px; width: 100%; border: none; border-radius: 15px; font-weight: bold; font-family: 'Orbitron'; cursor: pointer; }
         
         .photo-container { width: 100%; height: 180px; background: #000; border-radius: 20px; margin-bottom: 15px; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border); }
@@ -56,6 +57,7 @@
 </head>
 <body>
 
+    <div id="status-pwa">Project Red: Notificação Ativa</div>
     <button id="btn-exit-blackout" onclick="toggleBlackout()">SAIR DO MODO ECONÔMICO</button>
     <button id="btn-edit" onclick="toggleEditMode()">📸</button>
 
@@ -133,24 +135,47 @@
     <div class="scrim" id="scrim" onclick="fecharPaineis()"></div>
 
     <script>
-        let db = JSON.parse(localStorage.getItem('red_db_v28_5')) || { pontos: [], banco: ["Motor", "Vela", "Corrente"], odo: 0, maxSpeed: 0, fuelLog: [] };
-        let editMode = false, pAtual = null, pz, tempImg = "", lastPos = null, bubbleMode = 0;
+        let db = JSON.parse(localStorage.getItem('red_db_v28_6')) || { pontos: [], banco: ["Motor", "Vela", "Corrente"], odo: 0, maxSpeed: 0, fuelLog: [] };
+        let editMode = false, pAtual = null, pz, tempImg = "", lastPos = null, bubbleMode = 0, wakeLock = null;
 
         window.onload = () => {
             pz = panzoom(document.getElementById('bike-wrapper'), { maxZoom: 5, bounds: true });
             render(); atualizarBancoUI(); initGPS(); initBubble(); renderFuelHistory();
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('sw.js').then(() => console.log("SW Registrado"));
+            }
         };
 
-        // GPS E PERSISTÊNCIA
+        // NOTIFICAÇÃO E PERSISTÊNCIA
         async function ativarModoPersistente() {
             try {
-                if ('wakeLock' in navigator) await navigator.wakeLock.request('screen');
+                const permission = await Notification.requestPermission();
+                if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen');
+                
                 const audioCtx = new AudioContext();
                 const osc = audioCtx.createOscillator();
                 const gain = audioCtx.createGain(); gain.gain.value = 0.001;
                 osc.connect(gain); gain.connect(audioCtx.destination); osc.start();
-                alert("GPS EM SEGUNDO PLANO ATIVADO!");
+
+                document.getElementById('status-pwa').style.display = 'block';
+                atualizarNotificacao(0);
+                alert("MODO PERFORMANCE: Notificação ativada!");
             } catch (err) { console.log(err); }
+        }
+
+        function atualizarNotificacao(s) {
+            if ('serviceWorker' in navigator && Notification.permission === 'granted') {
+                navigator.serviceWorker.ready.then(reg => {
+                    reg.showNotification('Velocímetro Project Red', {
+                        body: `Velocidade: ${s} km/h | ODO: ${db.odo.toFixed(1)} km`,
+                        icon: 'icon.png',
+                        badge: 'icon.png',
+                        tag: 'speed-nav',
+                        ongoing: true,
+                        silent: true
+                    });
+                });
+            }
         }
 
         function initGPS() {
@@ -159,10 +184,12 @@
                 if(s > db.maxSpeed) db.maxSpeed = s;
                 if(lastPos) {
                     const d = calcDist(lastPos.lat, lastPos.lon, pos.coords.latitude, pos.coords.longitude);
-                    if(d > 0.002) db.odo += d;
+                    if(d > 0.0025) db.odo += d;
                 }
                 lastPos = { lat: pos.coords.latitude, lon: pos.coords.longitude };
-                save(); render(); atualizarDisplayBubble(s);
+                save(); render(); 
+                atualizarDisplayBubble(s);
+                atualizarNotificacao(s);
             }, null, { enableHighAccuracy: true });
         }
 
@@ -205,20 +232,14 @@
             editMode = !editMode;
             document.getElementById('btn-edit').classList.toggle('active');
             document.getElementById('bike-img').style.opacity = editMode ? 0.6 : 1;
-            if(editMode) { pz.pause(); alert("MODO EDIÇÃO: Toque na moto para adicionar uma peça."); } 
-            else pz.resume();
+            if(editMode) { pz.pause(); } else pz.resume();
         }
 
         document.getElementById('bike-wrapper').onclick = (e) => {
             if(!editMode) return;
             const rect = document.getElementById('bike-img').getBoundingClientRect();
             const tr = pz.getTransform();
-            pAtual = { 
-                id: Date.now(), 
-                x: (e.clientX - rect.left) / tr.scale, 
-                y: (e.clientY - rect.top) / tr.scale, 
-                nome: '', preco: 0, wear: 100, img: '' 
-            };
+            pAtual = { id: Date.now(), x: (e.clientX-rect.left)/tr.scale, y: (e.clientY-rect.top)/tr.scale, nome:'', preco:0, wear:100, img:'' };
             abrirPainelPeca();
         };
 
@@ -234,14 +255,12 @@
         }
 
         function salvarPeca() {
-            pAtual.nome = document.getElementById('p-nome').value || 'Nova Peça';
+            pAtual.nome = document.getElementById('p-nome').value || 'Peça';
             pAtual.preco = parseFloat(document.getElementById('p-preco').value) || 0;
-            pAtual.wear = parseInt(document.getElementById('p-wear').value);
-            pAtual.img = tempImg;
+            pAtual.wear = parseInt(document.getElementById('p-wear').value); pAtual.img = tempImg;
             const idx = db.pontos.findIndex(p=>p.id === pAtual.id);
             if(idx > -1) db.pontos[idx] = pAtual; else db.pontos.push(pAtual);
-            save(); render(); fecharPaineis();
-            if(editMode) toggleEditMode();
+            save(); render(); fecharPaineis(); if(editMode) toggleEditMode();
         }
 
         // AUXILIARES
@@ -264,12 +283,7 @@
         }
         function handleFileUpload(input) {
             const reader = new FileReader();
-            reader.onload = (e)=>{ 
-                tempImg = e.target.result; 
-                document.getElementById('p-img-preview').src = tempImg;
-                document.getElementById('p-img-preview').classList.add('active');
-                document.getElementById('photo-placeholder').style.display='none';
-            };
+            reader.onload = (e)=>{ tempImg = e.target.result; document.getElementById('p-img-preview').src = tempImg; document.getElementById('p-img-preview').classList.add('active'); document.getElementById('photo-placeholder').style.display='none'; };
             reader.readAsDataURL(input.files[0]);
         }
         function adicionarAoBanco() {
@@ -277,22 +291,17 @@
             if(val) { db.banco.push(val); document.getElementById('novo-banco-nome').value=''; atualizarBancoUI(); save(); }
         }
         function atualizarBancoUI() {
-            const sel = document.getElementById('p-select');
-            const cont = document.getElementById('lista-banco-container');
-            sel.innerHTML = '<option value="">SELECIONE UMA PEÇA</option>';
-            cont.innerHTML = '';
-            db.banco.sort().forEach(p=>{
-                sel.innerHTML += `<option value="${p}">${p}</option>`;
-                cont.innerHTML += `<div class="stat-card" style="display:flex;justify-content:space-between;"><span>${p}</span><b onclick="removerDoBanco('${p}')" style="color:red">✕</b></div>`;
-            });
+            const sel = document.getElementById('p-select'); const cont = document.getElementById('lista-banco-container');
+            sel.innerHTML = '<option value="">SELECIONE UMA PEÇA</option>'; cont.innerHTML = '';
+            db.banco.sort().forEach(p=>{ sel.innerHTML += `<option value="${p}">${p}</option>`; cont.innerHTML += `<div class="stat-card" style="display:flex;justify-content:space-between;"><span>${p}</span><b onclick="removerDoBanco('${p}')" style="color:red">✕</b></div>`; });
         }
         function removerDoBanco(n) { db.banco = db.banco.filter(p=>p!==n); atualizarBancoUI(); save(); }
         function toggleBlackout() { document.body.classList.toggle('blackout-mode'); }
-        function save() { localStorage.setItem('red_db_v28_5', JSON.stringify(db)); }
+        function save() { localStorage.setItem('red_db_v28_6', JSON.stringify(db)); }
         function abrirPainel(id) { fecharPaineis(); document.getElementById(id).classList.add('show'); document.getElementById('scrim').style.display='block'; }
         function fecharPaineis() { document.querySelectorAll('.bottom-sheet').forEach(s=>s.classList.remove('show')); document.getElementById('scrim').style.display='none'; }
         function resetMaxSpeed() { if(confirm("Zerar recorde?")) { db.maxSpeed=0; save(); render(); } }
-        function excluirPonto() { if(confirm("Remover este ponto do mapa?")) { db.pontos=db.pontos.filter(p=>p.id!==pAtual.id); save(); render(); fecharPaineis(); } }
+        function excluirPonto() { if(confirm("Remover?")) { db.pontos=db.pontos.filter(p=>p.id!==pAtual.id); save(); render(); fecharPaineis(); } }
         function calcDist(l1,o1,l2,o2) {
             const R=6371; const dLat=(l2-l1)*Math.PI/180, dLon=(o2-o1)*Math.PI/180;
             const a = Math.sin(dLat/2)**2 + Math.cos(l1*Math.PI/180)*Math.cos(l2*Math.PI/180)*Math.sin(dLon/2)**2;
