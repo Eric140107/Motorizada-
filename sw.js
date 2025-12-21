@@ -1,18 +1,18 @@
-// sw.js - Service Worker para Notificação Persistente
-self.addEventListener('push', function(event) {
-    const data = event.data.json();
-    const options = {
-        body: data.body,
-        icon: 'icon.png',
-        badge: 'icon.png',
-        ongoing: true, // Torna a notificação fixa (não pode ser removida com swipe)
-        vibrate: [100],
-        data: { dateOfArrival: Date.now() }
-    };
-    event.waitUntil(self.registration.showNotification('Velocímetro Project Red', options));
+self.addEventListener('install', (e) => {
+    self.skipWaiting();
 });
 
-// Mantém o SW ativo
-self.addEventListener('activate', event => {
-    event.waitUntil(clients.claim());
+self.addEventListener('activate', (e) => {
+    e.waitUntil(clients.claim());
+});
+
+// Listener para notificações disparadas pelo app
+self.addEventListener('push', function(event) {
+    const options = {
+        body: event.data.text(),
+        icon: 'icon.png',
+        badge: 'icon.png',
+        ongoing: true
+    };
+    event.waitUntil(self.registration.showNotification('Project Red Velocímetro', options));
 });
