@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=no, viewport-fit=cover">
-    <title>Project Red - Ultimate v28.7</title>
+    <title>Project Red - Ultimate</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#FF0033">
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
@@ -12,69 +12,42 @@
         :root { --accent: #FF0033; --bg: #050505; --card-bg: #121212; --green: #00FF95; --yellow: #FFB800; --border: rgba(255,255,255,0.1); }
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { font-family: 'Inter', sans-serif; background: var(--bg); color: #fff; height: 100vh; width: 100vw; overflow: hidden; }
-
-        /* MODOS ESPECIAIS */
         body.blackout-mode { background: #000; }
         body.blackout-mode #scene, body.blackout-mode .nav-bar, body.blackout-mode .app-bar, body.blackout-mode #btn-edit { display: none !important; }
         body.blackout-mode #floating-bubble { top: 50% !important; left: 50% !important; transform: translate(-50%, -50%) scale(2.8) !important; border-color: #111; }
         #btn-exit-blackout { position: fixed; top: 30px; left: 50%; transform: translateX(-50%); z-index: 9999; display: none; background: var(--accent); color: #fff; border: none; padding: 12px 24px; border-radius: 30px; font-family: 'Orbitron'; font-size: 10px; }
         body.blackout-mode #btn-exit-blackout { display: block; }
-        #status-pwa { position: fixed; top: 0; width: 100%; padding: 4px; background: var(--green); color: #000; font-size: 8px; text-align: center; font-weight: 900; z-index: 10000; display: none; }
-
-        /* HUD BOLHA */
-        #floating-bubble { position: fixed; top: 80px; right: 20px; width: 85px; height: 85px; background: rgba(15,15,15,0.95); border: 2px solid var(--accent); border-radius: 50%; z-index: 9000; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 0 25px rgba(255,0,51,0.5); backdrop-filter: blur(10px); touch-action: none; }
+        #floating-bubble { position: fixed; top: 80px; right: 20px; width: 85px; height: 85px; background: rgba(15,15,15,0.95); border: 2px solid var(--accent); border-radius: 50%; z-index: 9000; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 0 25px rgba(255,0,51,0.5); backdrop-filter: blur(10px); }
         #bubble-val { font-family: 'Orbitron'; font-size: 22px; font-weight: 900; }
         #bubble-unit { font-size: 7px; color: var(--accent); font-weight: bold; }
-
-        /* INTERFACE BASE */
         .app-bar { position: absolute; top: 0; width: 100%; height: 60px; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; z-index: 1000; }
         .logo { font-family: 'Orbitron'; font-weight: 900; color: var(--accent); }
         #scene { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 1; }
         #bike-img { display: block; width: 100vw; height: auto; }
-        
         .nav-bar { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 94%; height: 75px; background: var(--card-bg); border-radius: 22px; display: flex; align-items: center; justify-content: space-around; z-index: 4000; border: 1px solid var(--border); }
-        .nav-item { display: flex; flex-direction: column; align-items: center; color: #777; border: none; background: none; font-size: 9px; font-weight: bold; cursor: pointer; }
-        .btn-persist { background: var(--accent); width: 55px; height: 55px; border-radius: 18px; display: flex; align-items: center; justify-content: center; color: white; font-size: 26px; transform: translateY(-15px); box-shadow: 0 5px 15px rgba(255,0,51,0.4); }
-
-        #btn-edit { position: fixed; top: 80px; left: 20px; width: 50px; height: 50px; background: var(--card-bg); border: 2px solid #fff; border-radius: 15px; z-index: 4000; display: flex; align-items: center; justify-content: center; color: white; font-size: 20px; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; color: #777; border: none; background: none; font-size: 9px; font-weight: bold; }
+        .btn-persist { background: var(--accent); width: 55px; height: 55px; border-radius: 18px; display: flex; align-items: center; justify-content: center; color: white; font-size: 26px; transform: translateY(-15px); }
+        #btn-edit { position: fixed; top: 80px; left: 20px; width: 50px; height: 50px; background: var(--card-bg); border: 2px solid #fff; border-radius: 15px; z-index: 4000; display: flex; align-items: center; justify-content: center; color: white; }
         #btn-edit.active { background: var(--green); border-color: var(--green); }
-
-        /* SHEETS */
-        .bottom-sheet { position: fixed; bottom: -110%; left: 0; right: 0; background: #0c0c0c; border-radius: 30px 30px 0 0; padding: 25px; transition: 0.4s cubic-bezier(0.32, 0.72, 0, 1); z-index: 5000; max-height: 85vh; overflow-y: auto; border-top: 1px solid var(--border); }
+        .bottom-sheet { position: fixed; bottom: -110%; left: 0; right: 0; background: #0c0c0c; border-radius: 30px 30px 0 0; padding: 25px; transition: 0.4s; z-index: 5000; max-height: 85vh; overflow-y: auto; border-top: 1px solid var(--border); }
         .bottom-sheet.show { bottom: 0; }
         .stat-card { background: rgba(255,255,255,0.03); padding: 15px; border-radius: 15px; border: 1px solid var(--border); margin-bottom: 10px; }
-        input, select { width: 100%; background: rgba(255,255,255,0.05); border: 1px solid var(--border); padding: 15px; color: #fff; border-radius: 12px; margin-bottom: 10px; outline: none; font-size: 16px; }
-        .btn-main { background: var(--accent); color: white; padding: 18px; width: 100%; border: none; border-radius: 15px; font-weight: bold; font-family: 'Orbitron'; cursor: pointer; }
-        
+        input, select { width: 100%; background: rgba(255,255,255,0.05); border: 1px solid var(--border); padding: 15px; color: #fff; border-radius: 12px; margin-bottom: 10px; font-size: 16px; }
+        .btn-main { background: var(--accent); color: white; padding: 18px; width: 100%; border: none; border-radius: 15px; font-weight: bold; font-family: 'Orbitron'; }
         .photo-container { width: 100%; height: 180px; background: #000; border-radius: 20px; margin-bottom: 15px; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border); }
         #p-img-preview { width: 100%; height: 100%; object-fit: cover; display: none; }
         #p-img-preview.active { display: block; }
-        
         .scrim { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 4500; }
-        
-        /* HOTSPOTS DINÂMICOS */
         .hotspot { position: absolute; transform: translate(-50%, -50%); z-index: 500; display: flex; align-items: center; justify-content: center; cursor: crosshair; }
-        .hotspot-circle { width: 100%; height: 100%; border-radius: 50%; border: 1px solid #fff; box-shadow: 0 0 5px rgba(0,0,0,0.5); }
+        .hotspot-circle { width: 100%; height: 100%; border-radius: 50%; border: 1px solid #fff; }
     </style>
 </head>
 <body>
-
-    <div id="status-pwa">Project Red: Background Ativo</div>
     <button id="btn-exit-blackout" onclick="toggleBlackout()">SAIR DO MODO ECONÔMICO</button>
     <button id="btn-edit" onclick="toggleEditMode()">📸</button>
-
-    <div id="floating-bubble">
-        <div id="bubble-val">00</div>
-        <div id="bubble-unit">KM/H</div>
-    </div>
-
-    <header class="app-bar">
-        <div class="logo">PROJECT RED</div>
-        <div id="display-km" style="font-family:Orbitron; color:var(--green); font-size:11px;">ODO: 0.0 km</div>
-    </header>
-
+    <div id="floating-bubble"><div id="bubble-val">00</div><div id="bubble-unit">KM/H</div></div>
+    <header class="app-bar"><div class="logo">PROJECT RED</div><div id="display-km" style="font-family:Orbitron; color:var(--green); font-size:11px;">ODO: 0.0 km</div></header>
     <main id="scene"><div id="bike-wrapper"><img src="motorizada.png" id="bike-img"></div></main>
-
     <nav class="nav-bar">
         <button class="nav-item" onclick="abrirPainel('sheet-trip')"><span>🚩 TRIP</span></button>
         <button class="nav-item" onclick="abrirPainel('sheet-fuel-log')"><span>⛽ FUEL</span></button>
@@ -83,57 +56,53 @@
         <button class="nav-item" onclick="abrirPainel('sheet-finance')"><span>💰 GASTOS</span></button>
     </nav>
 
-    <div class="bottom-sheet" id="sheet-trip">
-        <h2 style="font-family:Orbitron; text-align:center; margin-bottom:20px;">PERFORMANCE</h2>
-        <div class="stat-card"><div style="font-size:10px; color:var(--accent)">MÁXIMA</div><div id="max-speed-val" style="font-size:32px; font-family:Orbitron;">0 km/h</div></div>
-        <div class="stat-card"><div style="font-size:10px; color:var(--green)">ODO TOTAL</div><div id="odo-val" style="font-size:32px; font-family:Orbitron;">0.00 km</div></div>
-        <button class="btn-main" style="background:#222" onclick="resetMaxSpeed()">ZERAR RECORDE</button>
-    </div>
-
-    <div class="bottom-sheet" id="sheet-fuel-log">
-        <h2 style="font-family:Orbitron; text-align:center; margin-bottom:20px;">ABASTECIMENTO</h2>
-        <div class="stat-card" style="text-align:center;"><div id="avg-consumption" style="font-size:32px; font-family:Orbitron; color:var(--green);">--</div><span>KM/L MÉDIO</span></div>
-        <input type="number" id="fuel-liters" placeholder="Litros abastecidos">
-        <button class="btn-main" onclick="registrarAbastecimento()">SALVAR</button>
-        <div id="fuel-history" style="margin-top:15px;"></div>
-    </div>
-
-    <div class="bottom-sheet" id="sheet-banco">
-        <h2 style="font-family:Orbitron; margin-bottom:15px;">MEU BANCO</h2>
-        <div style="display:flex; gap:10px; margin-bottom:15px;"><input type="text" id="novo-banco-nome" placeholder="Peça..."><button onclick="adicionarAoBanco()" style="background:var(--green); border:none; padding:0 20px; border-radius:12px; font-weight:bold;">ADD</button></div>
-        <div id="lista-banco-container"></div>
-    </div>
-
-    <div class="bottom-sheet" id="sheet-finance">
-        <h2 style="font-family:Orbitron; text-align:center; margin-bottom:15px;">INVESTIMENTO</h2>
-        <div class="stat-card" style="text-align:center;"><div id="f-total" style="font-size:28px; color:var(--green); font-family:Orbitron;">R$ 0,00</div></div>
-        <div id="f-lista"></div>
-    </div>
-
     <div class="bottom-sheet" id="sheet-peca">
-        <h2 style="font-family:Orbitron; margin-bottom:15px;">PEÇA</h2>
-        <div class="photo-container">
-            <span id="photo-placeholder">SEM FOTO</span><img id="p-img-preview">
-            <label style="position:absolute; bottom:10px; right:10px; background:var(--accent); width:50px; height:50px; border-radius:50%; display:flex; align-items:center; justify-content:center;">📷<input type="file" accept="image/*" capture="environment" style="display:none;" onchange="handleFileUpload(this)"></label>
+        <h2 style="font-family:Orbitron; margin-bottom:15px;">DETALHES</h2>
+        <div class="photo-container"><span id="photo-placeholder">FOTO</span><img id="p-img-preview">
+            <label style="position:absolute; bottom:10px; right:10px; background:var(--accent); width:45px; height:45px; border-radius:50%; display:flex; align-items:center; justify-content:center;">📷<input type="file" accept="image/*" capture="environment" style="display:none;" onchange="handleFileUpload(this)"></label>
         </div>
         <select id="p-select" onchange="document.getElementById('p-nome').value = this.value"></select>
         <input type="text" id="p-nome" placeholder="Nome">
-        <input type="number" id="p-preco" placeholder="Preço R$">
-        
-        <label style="font-size:10px; color:var(--green); font-weight:bold;">TAMANHO DO PONTO: <span id="sz-val">5px</span></label>
-        <input type="range" id="p-size" min="5" max="50" step="1" style="width:100%; margin-bottom:15px;" oninput="document.getElementById('sz-val').innerText = this.value + 'px'">
-        
-        <label style="font-size:10px; color:var(--accent); font-weight:bold;">VIDA ÚTIL: <span id="wl">100%</span></label>
+        <input type="number" id="p-preco" placeholder="R$">
+        <label style="font-size:10px; color:var(--green);">TAMANHO DO PONTO: <span id="sz-val">5px</span></label>
+        <input type="range" id="p-size" min="5" max="50" style="width:100%; margin-bottom:10px;" oninput="document.getElementById('sz-val').innerText = this.value + 'px'">
+        <label style="font-size:10px; color:var(--accent);">SAÚDE: <span id="wl">100%</span></label>
         <input type="range" id="p-wear" min="0" max="100" style="width:100%;" oninput="document.getElementById('wl').innerText = this.value + '%'">
-        
-        <button class="btn-main" onclick="salvarPeca()" style="margin-top:10px;">SALVAR</button>
-        <button onclick="excluirPonto()" style="width:100%; background:none; border:none; color:#555; margin-top:20px; font-size:11px;">EXCLUIR PONTO</button>
+        <button class="btn-main" style="margin-top:15px;" onclick="salvarPeca()">SALVAR</button>
+        <button onclick="excluirPonto()" style="width:100%; border:none; background:none; color:#555; margin-top:20px;">EXCLUIR PONTO</button>
+    </div>
+
+    <div class="bottom-sheet" id="sheet-trip">
+        <h2 style="font-family:Orbitron; margin-bottom:20px;">TRIP</h2>
+        <div class="stat-card">MÁXIMA: <span id="max-speed-val">0 km/h</span></div>
+        <div class="stat-card">TOTAL: <span id="odo-val">0.0 km</span></div>
+        <button class="btn-main" onclick="resetMaxSpeed()">ZERAR</button>
+    </div>
+
+    <div class="bottom-sheet" id="sheet-fuel-log">
+        <h2 style="font-family:Orbitron; margin-bottom:20px;">FUEL</h2>
+        <div class="stat-card">MÉDIA: <span id="avg-consumption">--</span> km/L</div>
+        <input type="number" id="fuel-liters" placeholder="Litros">
+        <button class="btn-main" onclick="registrarAbastecimento()">SALVAR</button>
+        <div id="fuel-history" style="margin-top:10px;"></div>
+    </div>
+
+    <div class="bottom-sheet" id="sheet-banco">
+        <h2 style="font-family:Orbitron; margin-bottom:15px;">BANCO</h2>
+        <div style="display:flex; gap:10px;"><input type="text" id="novo-banco-nome" placeholder="Nome..."><button onclick="adicionarAoBanco()" style="background:var(--green); border:none; padding:15px; border-radius:10px;">ADD</button></div>
+        <div id="lista-banco-container" style="margin-top:15px;"></div>
+    </div>
+
+    <div class="bottom-sheet" id="sheet-finance">
+        <h2 style="font-family:Orbitron; margin-bottom:15px;">GASTOS</h2>
+        <div class="stat-card" style="text-align:center; font-size:24px; color:var(--green);"><div id="f-total">R$ 0,00</div></div>
+        <div id="f-lista"></div>
     </div>
 
     <div class="scrim" id="scrim" onclick="fecharPaineis()"></div>
 
     <script>
-        let db = JSON.parse(localStorage.getItem('red_db_v28_7')) || { pontos: [], banco: ["Motor", "Vela", "Corrente"], odo: 0, maxSpeed: 0, fuelLog: [] };
+        let db = JSON.parse(localStorage.getItem('red_db_v28_final')) || { pontos: [], banco: ["Motor", "Corrente"], odo: 0, maxSpeed: 0, fuelLog: [] };
         let editMode = false, pAtual = null, pz, tempImg = "", lastPos = null, bubbleMode = 0, wakeLock = null;
 
         window.onload = () => {
@@ -142,7 +111,6 @@
             if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
         };
 
-        // GPS E NOTIFICAÇÃO
         async function ativarModoPersistente() {
             try {
                 await Notification.requestPermission();
@@ -151,19 +119,14 @@
                 const osc = audioCtx.createOscillator();
                 const gain = audioCtx.createGain(); gain.gain.value = 0.001;
                 osc.connect(gain); gain.connect(audioCtx.destination); osc.start();
-                document.getElementById('status-pwa').style.display = 'block';
-                atualizarNotificacao(0);
-                alert("GPS E NOTIFICAÇÃO ATIVOS!");
+                atualizarNotificacao(0); alert("MODO ATIVO!");
             } catch (err) { console.log(err); }
         }
 
         function atualizarNotificacao(s) {
             if ('serviceWorker' in navigator && Notification.permission === 'granted') {
                 navigator.serviceWorker.ready.then(reg => {
-                    reg.showNotification('Project Red', {
-                        body: `Velocidade: ${s} km/h | ODO: ${db.odo.toFixed(1)} km`,
-                        icon: 'icon.png', tag: 'speed', ongoing: true, silent: true
-                    });
+                    reg.showNotification('Project Red', { body: `Velocidade: ${s} km/h | ODO: ${db.odo.toFixed(1)} km`, icon: 'icon.png', tag: 'speed', ongoing: true, silent: true });
                 });
             }
         }
@@ -181,39 +144,29 @@
             }, null, { enableHighAccuracy: true });
         }
 
-        // RENDERIZAÇÃO CIRÚRGICA
         function render() {
             document.querySelectorAll('.hotspot').forEach(h=>h.remove());
-            const fL = document.getElementById('f-lista'); fL.innerHTML = '';
-            let total = 0;
+            const fL = document.getElementById('f-lista'); fL.innerHTML = ''; let total = 0;
             db.pontos.forEach(p=>{
                 total += (p.preco || 0);
                 const div = document.createElement('div');
                 div.className='hotspot'; 
-                const s = p.size || 5; // Tamanho cirúrgico ou padrão 5
-                div.style.width = s + 'px';
-                div.style.height = s + 'px';
-                div.style.left=p.x+'px'; 
-                div.style.top=p.y+'px';
-                
+                const s = p.size || 5;
+                div.style.width = s + 'px'; div.style.height = s + 'px';
+                div.style.left=p.x+'px'; div.style.top=p.y+'px';
                 const cor = p.wear>70?'var(--green)':p.wear>30?'var(--yellow)':'var(--accent)';
                 div.innerHTML=`<div class="hotspot-circle" style="background:${cor}"></div>`;
                 div.onclick=(e)=>{ e.stopPropagation(); pAtual=p; abrirPainelPeca(); };
                 document.getElementById('bike-wrapper').appendChild(div);
                 fL.innerHTML += `<div class="stat-card" style="display:flex;justify-content:space-between;"><span>${p.nome}</span><b>R$ ${p.preco}</b></div>`;
             });
-            document.getElementById('f-total').innerText = `R$ ${total.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+            document.getElementById('f-total').innerText = `R$ ${total.toLocaleString('pt-BR')}`;
             document.getElementById('display-km').innerText = `ODO: ${db.odo.toFixed(1)} km`;
             document.getElementById('odo-val').innerText = `${db.odo.toFixed(2)} km`;
             document.getElementById('max-speed-val').innerText = `${db.maxSpeed} km/h`;
         }
 
-        function toggleEditMode() {
-            editMode = !editMode;
-            document.getElementById('btn-edit').classList.toggle('active');
-            document.getElementById('bike-img').style.opacity = editMode ? 0.6 : 1;
-            editMode ? pz.pause() : pz.resume();
-        }
+        function toggleEditMode() { editMode = !editMode; document.getElementById('btn-edit').classList.toggle('active'); editMode ? pz.pause() : pz.resume(); }
 
         document.getElementById('bike-wrapper').onclick = (e) => {
             if(!editMode) return;
@@ -227,9 +180,8 @@
             document.getElementById('p-nome').value = pAtual.nome;
             document.getElementById('p-preco').value = pAtual.preco;
             document.getElementById('p-wear').value = pAtual.wear;
-            const s = pAtual.size || 5;
-            document.getElementById('p-size').value = s;
-            document.getElementById('sz-val').innerText = s + 'px';
+            document.getElementById('p-size').value = pAtual.size || 5;
+            document.getElementById('sz-val').innerText = (pAtual.size || 5) + 'px';
             tempImg = pAtual.img || "";
             const imgP = document.getElementById('p-img-preview');
             if(tempImg) { imgP.src = tempImg; imgP.classList.add('active'); document.getElementById('photo-placeholder').style.display='none'; }
@@ -248,11 +200,7 @@
             save(); render(); fecharPaineis(); if(editMode) toggleEditMode();
         }
 
-        // BOLHA E AUXILIARES
-        function initBubble() {
-            const b = document.getElementById('floating-bubble');
-            b.onclick = ()=>{ bubbleMode=(bubbleMode+1)%3; document.getElementById('bubble-unit').innerText=["KM/H","MÁXIMA","TOTAL"][bubbleMode]; atualizarDisplayBubble(0); };
-        }
+        function initBubble() { document.getElementById('floating-bubble').onclick = ()=>{ bubbleMode=(bubbleMode+1)%3; document.getElementById('bubble-unit').innerText=["KM/H","MÁX","ODO"][bubbleMode]; atualizarDisplayBubble(0); }; }
         function atualizarDisplayBubble(s) { document.getElementById('bubble-val').innerText = [s, db.maxSpeed, db.odo.toFixed(1)][bubbleMode]; }
         function registrarAbastecimento() {
             const lit = parseFloat(document.getElementById('fuel-liters').value);
@@ -267,7 +215,7 @@
                 const km = db.fuelLog[i].odo - db.fuelLog[i+1].odo;
                 const cons = (km / db.fuelLog[i].litros).toFixed(1);
                 tKm += km; tL += db.fuelLog[i].litros;
-                cont.innerHTML += `<div class="stat-card" style="display:flex;justify-content:space-between;font-size:11px;"><span>${db.fuelLog[i].data}</span><b>${cons} km/L</b></div>`;
+                cont.innerHTML += `<div class="stat-card" style="display:flex;justify-content:space-between;font-size:10px;"><span>${db.fuelLog[i].data}</span><b>${cons} km/L</b></div>`;
             }
             document.getElementById('avg-consumption').innerText = (tKm/tL).toFixed(1);
         }
@@ -276,27 +224,16 @@
             reader.onload = (e)=>{ tempImg = e.target.result; document.getElementById('p-img-preview').src = tempImg; document.getElementById('p-img-preview').classList.add('active'); document.getElementById('photo-placeholder').style.display='none'; };
             reader.readAsDataURL(input.files[0]);
         }
-        function adicionarAoBanco() {
-            const val = document.getElementById('novo-banco-nome').value;
-            if(val) { db.banco.push(val); document.getElementById('novo-banco-nome').value=''; atualizarBancoUI(); save(); }
-        }
-        function atualizarBancoUI() {
-            const sel = document.getElementById('p-select'); const cont = document.getElementById('lista-banco-container');
-            sel.innerHTML = '<option value="">SELECIONE UMA PEÇA</option>'; cont.innerHTML = '';
-            db.banco.sort().forEach(p=>{ sel.innerHTML += `<option value="${p}">${p}</option>`; cont.innerHTML += `<div class="stat-card" style="display:flex;justify-content:space-between;"><span>${p}</span><b onclick="removerDoBanco('${p}')" style="color:red">✕</b></div>`; });
-        }
+        function adicionarAoBanco() { const val = document.getElementById('novo-banco-nome').value; if(val) { db.banco.push(val); document.getElementById('novo-banco-nome').value=''; atualizarBancoUI(); save(); } }
+        function atualizarBancoUI() { const sel = document.getElementById('p-select'); const cont = document.getElementById('lista-banco-container'); sel.innerHTML = '<option value="">SELECIONE</option>'; cont.innerHTML = ''; db.banco.sort().forEach(p=>{ sel.innerHTML += `<option value="${p}">${p}</option>`; cont.innerHTML += `<div class="stat-card" style="display:flex;justify-content:space-between;"><span>${p}</span><b onclick="removerDoBanco('${p}')" style="color:red">✕</b></div>`; }); }
         function removerDoBanco(n) { db.banco = db.banco.filter(p=>p!==n); atualizarBancoUI(); save(); }
         function toggleBlackout() { document.body.classList.toggle('blackout-mode'); }
-        function save() { localStorage.setItem('red_db_v28_7', JSON.stringify(db)); }
+        function save() { localStorage.setItem('red_db_v28_final', JSON.stringify(db)); }
         function abrirPainel(id) { fecharPaineis(); document.getElementById(id).classList.add('show'); document.getElementById('scrim').style.display='block'; }
         function fecharPaineis() { document.querySelectorAll('.bottom-sheet').forEach(s=>s.classList.remove('show')); document.getElementById('scrim').style.display='none'; }
-        function resetMaxSpeed() { if(confirm("Zerar recorde?")) { db.maxSpeed=0; save(); render(); } }
+        function resetMaxSpeed() { if(confirm("Zerar?")) { db.maxSpeed=0; save(); render(); } }
         function excluirPonto() { if(confirm("Remover?")) { db.pontos=db.pontos.filter(p=>p.id!==pAtual.id); save(); render(); fecharPaineis(); } }
-        function calcDist(l1,o1,l2,o2) {
-            const R=6371; const dLat=(l2-l1)*Math.PI/180, dLon=(o2-o1)*Math.PI/180;
-            const a = Math.sin(dLat/2)**2 + Math.cos(l1*Math.PI/180)*Math.cos(l2*Math.PI/180)*Math.sin(dLon/2)**2;
-            return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-        }
+        function calcDist(l1,o1,l2,o2) { const R=6371; const dLat=(l2-l1)*Math.PI/180, dLon=(o2-o1)*Math.PI/180; const a = Math.sin(dLat/2)**2 + Math.cos(l1*Math.PI/180)*Math.cos(l2*Math.PI/180)*Math.sin(dLon/2)**2; return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); }
     </script>
 </body>
 </html>
