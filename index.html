@@ -2,175 +2,129 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Project Red - Navigation</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Project Red - Ghost Map</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@900&display=swap" rel="stylesheet">
     
     <style>
-        :root { --accent: #FF0033; --bg: #050505; --card-bg: #121212; --green: #00FF95; --border: rgba(255,255,255,0.1); }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Inter', sans-serif; background: var(--bg); color: #fff; height: 100vh; overflow: hidden; }
+        :root { --accent: #FF0000; --bg: #000000; }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: #000; overflow: hidden; }
 
-        /* MAPA */
-        #map { position: absolute; inset: 0; z-index: 1; background: #000; }
-        .map-dark { filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%); }
+        /* O SEGREDO DO MAPA VERMELHO: Filtro SVG */
+        #map { 
+            position: absolute; inset: 0; z-index: 1; background: #000;
+            filter: invert(100%) hue-rotate(150deg) brightness(1.2) saturate(5) contrast(1.2);
+        }
 
-        /* HUD VELOCÍMETRO */
-        #floating-bubble { position: fixed; top: 70px; right: 20px; width: 90px; height: 90px; background: rgba(0,0,0,0.8); border: 3px solid var(--accent); border-radius: 50%; z-index: 9000; display: flex; flex-direction: column; align-items: center; justify-content: center; backdrop-filter: blur(10px); box-shadow: 0 0 20px rgba(255,0,51,0.4); }
-        #bubble-val { font-family: 'Orbitron'; font-size: 28px; font-weight: 900; }
-        #bubble-unit { font-size: 8px; color: var(--accent); font-weight: bold; }
+        /* HUD SOBREPOSTO */
+        .hud-top {
+            position: fixed; top: 0; width: 100%; background: rgba(0,0,0,0.85);
+            padding: 10px; z-index: 9999; display: flex; justify-content: space-around;
+            border-bottom: 2px solid var(--accent); font-family: 'Orbitron'; color: #fff;
+        }
+        .tel-val { display: block; font-size: 14px; color: var(--accent); }
+        .tel-label { font-size: 8px; color: #666; }
 
-        /* PAINEL DE TELEMETRIA (TOPO) */
-        .telemetry-bar { position: fixed; top: 0; width: 100%; background: rgba(0,0,0,0.8); padding: 10px; z-index: 8000; display: flex; justify-content: space-around; border-bottom: 1px solid var(--border); font-family: 'Orbitron'; font-size: 9px; }
-        .tel-item span { display: block; color: var(--accent); font-size: 7px; margin-bottom: 2px; }
+        #floating-bubble {
+            position: fixed; bottom: 100px; right: 20px; width: 90px; height: 90px;
+            background: #000; border: 4px solid var(--accent); border-radius: 50%;
+            z-index: 9999; display: flex; flex-direction: column; align-items: center;
+            justify-content: center; box-shadow: 0 0 30px rgba(255,0,0,0.6);
+        }
+        #bubble-val { font-family: 'Orbitron'; font-size: 32px; color: #fff; }
+        #bubble-unit { font-size: 10px; color: var(--accent); font-weight: bold; }
 
-        /* NAV BAR */
-        .nav-bar { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 94%; height: 65px; background: var(--card-bg); border-radius: 20px; display: flex; align-items: center; justify-content: space-around; z-index: 9000; border: 1px solid var(--border); }
-        .btn-main { background: var(--accent); width: 50px; height: 50px; border-radius: 15px; display: flex; align-items: center; justify-content: center; color: white; border: none; font-size: 20px; }
-
-        /* BOTÃO MODO MAPA/MOTO */
-        #toggle-view { position: fixed; top: 120px; left: 20px; width: 45px; height: 45px; background: var(--card-bg); border: 1px solid #fff; border-radius: 12px; z-index: 9000; display: flex; align-items: center; justify-content: center; }
-
-        .bottom-sheet { position: fixed; bottom: -110%; left: 0; right: 0; background: #0c0c0c; border-radius: 25px 25px 0 0; padding: 25px; transition: 0.4s; z-index: 9500; border-top: 1px solid var(--border); }
-        .bottom-sheet.show { bottom: 0; }
-        .stat-card { background: rgba(255,255,255,0.05); padding: 15px; border-radius: 15px; margin-bottom: 10px; }
+        .nav-bar {
+            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+            width: 90%; height: 60px; background: rgba(0,0,0,0.9); border: 1px solid #333;
+            border-radius: 20px; z-index: 9999; display: flex; justify-content: space-around; align-items: center;
+        }
     </style>
 </head>
 <body>
 
-    <div class="telemetry-bar">
-        <div class="tel-item"><span>MÉDIA</span><div id="tel-avg">0.0</div></div>
-        <div class="tel-item"><span>MÁX</span><div id="tel-max">0</div></div>
-        <div class="tel-item"><span>MÍN</span><div id="tel-min">0</div></div>
-        <div class="tel-item"><span>ROLÊ</span><div id="tel-dist">0.0 km</div></div>
+    <div class="hud-top">
+        <div style="text-align:center"><span class="tel-label">MÁX</span><span class="tel-val" id="tel-max">0</span></div>
+        <div style="text-align:center"><span class="tel-label">MÉDIA</span><span class="tel-val" id="tel-avg">0</span></div>
+        <div style="text-align:center"><span class="tel-label">MIN</span><span class="tel-val" id="tel-min">0</span></div>
+        <div style="text-align:center"><span class="tel-label">DIST</span><span class="tel-val" id="tel-dist">0.0</span></div>
     </div>
 
     <div id="map"></div>
 
-    <div id="floating-bubble" onclick="toggleBubbleMode()">
+    <div id="floating-bubble">
         <div id="bubble-val">00</div>
         <div id="bubble-unit">KM/H</div>
     </div>
 
-    <button id="toggle-view" onclick="toggleView()">🗺️</button>
-
     <nav class="nav-bar">
-        <button class="btn-main" onclick="toggleBlackout()">⚡</button>
-        <button onclick="abrirPainel('sheet-auto')" style="background:none; border:none; color:#fff; font-size:20px;">⚙️</button>
+        <button onclick="location.reload()" style="background:none; border:none; color:red; font-weight:bold;">RELOAD MAP</button>
+        <div id="status-gps" style="font-size:8px; color:lime;">GPS ATIVO</div>
     </nav>
 
-    <div class="bottom-sheet" id="sheet-auto">
-        <h2 style="font-family:Orbitron; margin-bottom:15px; font-size:16px;">AUTOMAÇÃO DE ROLÊ</h2>
-        <div class="stat-card">
-            <label style="font-size:10px;">INÍCIO:</label>
-            <input type="time" id="auto-start" style="width:100%; margin:10px 0; padding:10px; border-radius:10px;">
-            <label style="font-size:10px;">FIM:</label>
-            <input type="time" id="auto-end" style="width:100%; margin:10px 0; padding:10px; border-radius:10px;">
-        </div>
-        <button onclick="salvarConfig()" style="width:100%; background:var(--green); color:#000; padding:15px; border-radius:15px; border:none; font-weight:bold;">GUARDAR</button>
-    </div>
-
     <script>
-        let db = JSON.parse(localStorage.getItem('red_db_v32')) || { 
-            odo: 0, 
-            auto: { start: "07:00", end: "19:00" },
-            role: { dist: 0, max: 0, min: 999, speeds: [], path: [], data: "" }
+        let db = JSON.parse(localStorage.getItem('red_db_v33')) || { 
+            odo: 0, role: { dist: 0, max: 0, min: 999, speeds: [], path: [] }
         };
 
-        let map, polyline, marker, lastPos = null;
-        let bubbleMode = 0; // 0: KMH, 1: ODO
-
-        window.onload = () => {
-            initMap();
-            initGPS();
-            document.getElementById('auto-start').value = db.auto.start;
-            document.getElementById('auto-end').value = db.auto.end;
-        };
+        let map, polyline, marker;
 
         function initMap() {
-            map = L.map('map', { zoomControl: false, attributionControl: false }).setView([0,0], 15);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { className: 'map-dark' }).addTo(map);
-            polyline = L.polyline([], { color: '#FF0033', weight: 5, opacity: 0.8 }).addTo(map);
-            marker = L.circleMarker([0,0], { radius: 8, color: '#fff', fillColor: '#FF0033', fillOpacity: 1 }).addTo(map);
+            // Usando CartoDB Positron que responde melhor ao filtro de inversão para ficar vermelho
+            map = L.map('map', { zoomControl: false, attributionControl: false }).setView([0,0], 17);
+            
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+                maxZoom: 19
+            }).addTo(map);
+
+            polyline = L.polyline([], { color: '#ff0000', weight: 6, opacity: 1 }).addTo(map);
+            marker = L.circleMarker([0,0], { radius: 6, color: '#fff', fillColor: '#ff0000', fillOpacity: 1 }).addTo(map);
         }
 
-        function initGPS() {
+        function updateGPS() {
             navigator.geolocation.watchPosition((pos) => {
                 const lat = pos.coords.latitude;
                 const lon = pos.coords.longitude;
                 const speed = Math.round((pos.coords.speed || 0) * 3.6);
-                
-                // Atualizar Mapa
                 const coords = [lat, lon];
+
                 marker.setLatLng(coords);
                 map.panTo(coords);
 
-                if (isInsideTime()) {
-                    if (db.role.data !== new Date().toLocaleDateString()) resetRole();
+                // Telemetria do Rolê
+                if (speed > 2) {
+                    db.role.path.push(coords);
+                    polyline.setLatLngs(db.role.path);
+                    if (speed > db.role.max) db.role.max = speed;
+                    if (speed < db.role.min) db.role.min = speed;
+                    db.role.speeds.push(speed);
                     
-                    if (lastPos) {
-                        const d = calcDist(lastPos.lat, lastPos.lon, lat, lon);
-                        if (d > 0.002) { // Só regista se mover mais de 2 metros
-                            db.role.dist += d;
-                            db.odo += d;
-                            db.role.path.push(coords);
-                            polyline.setLatLngs(db.role.path);
-                        }
-                    }
-
-                    // Telemetria
-                    if (speed > 2) { // Só conta média/mínima se estiver a andar
-                        if (speed > db.role.max) db.role.max = speed;
-                        if (speed < db.role.min) db.role.min = speed;
-                        db.role.speeds.push(speed);
+                    // Cálculo de distância (simplificado para economia de processamento)
+                    if(db.role.path.length > 1) {
+                        db.role.dist += 0.002; // Aproximação por polling
                     }
                 }
 
-                lastPos = { lat, lon };
-                updateUI(speed);
-                save();
-            }, null, { enableHighAccuracy: true });
+                document.getElementById('bubble-val').innerText = speed;
+                document.getElementById('tel-max').innerText = db.role.max;
+                document.getElementById('tel-min').innerText = db.role.min === 999 ? 0 : db.role.min;
+                document.getElementById('tel-dist').innerText = db.role.dist.toFixed(1);
+                
+                const avg = db.role.speeds.length > 0 ? (db.role.speeds.reduce((a,b)=>a+b)/db.role.speeds.length).toFixed(0) : 0;
+                document.getElementById('tel-avg').innerText = avg;
+
+                localStorage.setItem('red_db_v33', JSON.stringify(db));
+            }, (err) => {
+                document.getElementById('status-gps').innerText = "ERRO GPS: " + err.message;
+            }, { enableHighAccuracy: true });
         }
 
-        function updateUI(s) {
-            document.getElementById('bubble-val').innerText = bubbleMode === 0 ? s : db.odo.toFixed(1);
-            document.getElementById('tel-max').innerText = db.role.max;
-            document.getElementById('tel-min').innerText = db.role.min === 999 ? 0 : db.role.min;
-            document.getElementById('tel-dist').innerText = db.role.dist.toFixed(2) + " km";
-            
-            const avg = db.role.speeds.length > 0 ? (db.role.speeds.reduce((a,b)=>a+b)/db.role.speeds.length).toFixed(1) : 0;
-            document.getElementById('tel-avg').innerText = avg;
-        }
-
-        function isInsideTime() {
-            const agora = new Date();
-            const atual = agora.getHours().toString().padStart(2,'0') + ":" + agora.getMinutes().toString().padStart(2,'0');
-            return (atual >= db.auto.start && atual <= db.auto.end);
-        }
-
-        function resetRole() {
-            db.role = { dist: 0, max: 0, min: 999, speeds: [], path: [], data: new Date().toLocaleDateString() };
-            polyline.setLatLngs([]);
-        }
-
-        function toggleView() {
-            // No futuro podes alternar entre o mapa e a imagem da moto aqui
-            alert("Modo de Visualização: Mapa Ativo (Tracejado em tempo real)");
-        }
-
-        function toggleBubbleMode() {
-            bubbleMode = (bubbleMode + 1) % 2;
-            document.getElementById('bubble-unit').innerText = bubbleMode === 0 ? "KM/H" : "ODO KM";
-        }
-
-        function toggleBlackout() { document.body.style.filter = document.body.style.filter === 'brightness(0.2)' ? 'brightness(1)' : 'brightness(0.2)'; }
-        function abrirPainel(id) { document.getElementById(id).classList.add('show'); }
-        function fecharPaineis() { document.querySelectorAll('.bottom-sheet').forEach(s=>s.classList.remove('show')); }
-        function salvarConfig() { db.auto.start = document.getElementById('auto-start').value; db.auto.end = document.getElementById('auto-end').value; save(); fecharPaineis(); }
-        function save() { localStorage.setItem('red_db_v32', JSON.stringify(db)); }
-        function calcDist(l1,o1,l2,o2) { const R=6371; const dLat=(l2-l1)*Math.PI/180, dLon=(o2-o1)*Math.PI/180; const a = Math.sin(dLat/2)**2 + Math.cos(l1*Math.PI/180)*Math.cos(l2*Math.PI/180)*Math.sin(dLon/2)**2; return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); }
+        window.onload = () => {
+            initMap();
+            updateGPS();
+        };
     </script>
 </body>
 </html>
