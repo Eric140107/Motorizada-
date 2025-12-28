@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AutoMonitor Ultra Pro - Full System</title>
+    <title>AutoMonitor Ultra Pro - Backup Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -37,23 +37,21 @@
 
     <div id="lock-screen" class="flex">
         <span id="vel-lock" class="text-[120px] font-black text-yellow-500">0</span>
-        <p class="text-gray-500 uppercase font-black tracking-widest mb-10">Velocidade Atual</p>
+        <p class="text-gray-500 uppercase font-black tracking-widest mb-10">KM/H</p>
         <button onclick="desbloquear()" class="w-24 h-24 rounded-full bg-gray-900 border-4 border-yellow-500 text-3xl shadow-[0_0_20px_#eab308]">🔒</button>
     </div>
 
     <div id="chart-modal">
         <div class="flex justify-between items-center mb-6">
-            <h3 class="text-yellow-500 font-black italic">TELEMETRIA DA VIAGEM</h3>
+            <h3 class="text-yellow-500 font-black italic">TELEMETRIA</h3>
             <button onclick="document.getElementById('chart-modal').style.display='none'" class="bg-gray-800 px-4 py-2 rounded-xl text-xs">FECHAR</button>
         </div>
-        <div class="h-64 glass p-4 rounded-3xl">
-            <canvas id="speedChart"></canvas>
-        </div>
+        <div class="h-64 glass p-4 rounded-3xl"><canvas id="speedChart"></canvas></div>
     </div>
 
     <div id="pecas-modal">
         <div class="flex justify-between items-center mb-4">
-            <h3 class="text-yellow-500 font-black italic uppercase text-sm">Manutenção de Precisão</h3>
+            <h3 class="text-yellow-500 font-black italic uppercase text-sm">Manutenção Cirúrgica</h3>
             <button onclick="fecharPecas()" class="bg-red-600 px-4 py-1 rounded-full text-[10px] font-bold uppercase">Sair</button>
         </div>
         <div id="foto-tecnica-viewport">
@@ -67,10 +65,10 @@
         <div id="peca-drawer" class="glass p-6 flex flex-col">
             <h4 class="text-yellow-500 font-black uppercase italic mb-6">Novo Componente</h4>
             <div class="space-y-4 flex-1">
-                <input type="text" id="n-p" placeholder="Nome da Peça" class="w-full bg-black border border-gray-800 p-4 rounded-xl text-sm">
+                <input type="text" id="n-p" placeholder="Peça" class="w-full bg-black border border-gray-800 p-4 rounded-xl text-sm">
                 <input type="number" id="c-p" placeholder="Valor R$" class="w-full bg-black border border-gray-800 p-4 rounded-xl text-sm">
                 <input type="range" id="d-p" class="w-full accent-yellow-500">
-                <input type="number" id="v-p" placeholder="Duração (Dias)" class="w-full bg-black border border-gray-800 p-4 rounded-xl text-sm">
+                <input type="number" id="v-p" placeholder="Vida útil (Dias)" class="w-full bg-black border border-gray-800 p-4 rounded-xl text-sm">
             </div>
             <div class="flex gap-2 mt-4">
                 <button onclick="fecharDrawer()" class="flex-1 bg-gray-800 p-4 rounded-xl font-bold text-xs uppercase">Voltar</button>
@@ -99,12 +97,12 @@
     </main>
 
     <main id="garagem" class="tab-content glass p-6">
-        <h2 class="text-2xl font-black text-yellow-500 mb-6 italic">GARAGEM</h2>
+        <h2 class="text-2xl font-black text-yellow-500 mb-6 italic italic">GARAGEM</h2>
         <div class="bg-gray-800/30 p-4 rounded-3xl border border-white/5 space-y-4 mb-6">
-            <input type="text" id="g-nome" placeholder="Nome do Veículo" class="w-full p-4 rounded-xl bg-black border border-gray-800 outline-none">
+            <input type="text" id="g-nome" placeholder="Nome do Veículo" class="w-full p-4 rounded-xl bg-black border border-gray-800">
             <div class="grid grid-cols-2 gap-2">
                 <button onclick="document.getElementById('f-p').click()" class="bg-gray-700 p-3 rounded-xl text-[10px] font-bold">FOTO PERFIL</button>
-                <button onclick="document.getElementById('f-t').click()" class="bg-yellow-600/20 text-yellow-500 p-3 rounded-xl text-[10px] font-bold tracking-tighter">FOTO RAIO-X</button>
+                <button onclick="document.getElementById('f-t').click()" class="bg-yellow-600/20 text-yellow-500 p-3 rounded-xl text-[10px] font-bold">RAIO-X</button>
             </div>
             <input type="file" id="f-p" class="hidden" onchange="subirFoto(this,'p')">
             <input type="file" id="f-t" class="hidden" onchange="subirFoto(this,'t')">
@@ -115,8 +113,17 @@
             </div>
             <button onclick="addVeiculo()" class="w-full bg-yellow-500 text-black p-4 rounded-xl font-black uppercase">Adicionar</button>
         </div>
-        <div id="lista-garagem" class="space-y-4"></div>
-        <h3 class="text-xs font-bold text-gray-500 mt-8 mb-4 uppercase">Histórico de Viagens</h3>
+
+        <div id="lista-garagem" class="space-y-4 mb-8"></div>
+
+        <h3 class="text-xs font-bold text-gray-500 mb-4 uppercase">Dados e Segurança</h3>
+        <div class="grid grid-cols-2 gap-2 mb-8">
+            <button onclick="exportarBackup()" class="bg-blue-600/20 text-blue-400 p-3 rounded-xl text-[10px] font-bold border border-blue-500/30">📤 EXPORTAR</button>
+            <button onclick="document.getElementById('imp').click()" class="bg-purple-600/20 text-purple-400 p-3 rounded-xl text-[10px] font-bold border border-purple-500/30">📥 IMPORTAR</button>
+            <input type="file" id="imp" class="hidden" accept=".json" onchange="importarBackup(this)">
+        </div>
+
+        <h3 class="text-xs font-bold text-gray-500 mb-4 uppercase">Histórico</h3>
         <div id="lista-historico" class="space-y-2"></div>
     </main>
 
@@ -143,133 +150,86 @@
                 currentSpeed = pos.coords.speed ? pos.coords.speed * 3.6 : 0;
                 document.getElementById('vel-display').innerText = Math.round(currentSpeed);
                 document.getElementById('vel-lock').innerText = Math.round(currentSpeed);
-                
                 if(currentSpeed > 2) {
                     if(lastCoord) totalDist += map.distance([userLat, userLon], [lastCoord.lat, lastCoord.lon]);
-                    route.push([userLat, userLon]);
-                    polyline.setLatLngs(route);
-                    speeds.push(currentSpeed);
+                    route.push([userLat, userLon]); polyline.setLatLngs(route); speeds.push(currentSpeed);
                     document.getElementById('dist-txt').innerText = (totalDist/1000).toFixed(2) + " KM";
                 }
                 lastCoord = {lat:userLat, lon:userLon};
-                if(!marker) {
-                    marker = L.marker([userLat,userLon],{icon:L.divIcon({className:'custom-marker', html:tSel.i})}).addTo(map);
-                    map.setView([userLat,userLon], 18);
+                if(!marker) { marker = L.marker([userLat,userLon],{icon:L.divIcon({className:'custom-marker', html:tSel.i})}).addTo(map); map.setView([userLat,userLon], 18);
                 } else { marker.setLatLng([userLat,userLon]); }
             }, null, {enableHighAccuracy:true});
             renderGaragem(); renderHistorico();
         };
 
-        // GESTÃO DE VEÍCULOS
-        function subirFoto(input, t) {
+        // BACKUP
+        function exportarBackup() {
+            const d = { veiculos, historico };
+            const blob = new Blob([JSON.stringify(d)], {type:"application/json"});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a'); a.href = url; a.download = `backup_auto.json`;
+            a.click();
+        }
+        function importarBackup(input) {
             const reader = new FileReader(); reader.onload = (e) => {
-                const img = new Image(); img.src = e.target.result;
-                img.onload = () => {
-                    const canvas = document.createElement('canvas'); const MAX=600; let w=img.width, h=img.height;
-                    if(w>MAX){ h*=MAX/w; w=MAX; } canvas.width=w; canvas.height=h;
-                    canvas.getContext('2d').drawImage(img,0,0,w,h);
-                    if(t==='p') tempP = canvas.toDataURL('image/jpeg',0.8); else tempT = canvas.toDataURL('image/jpeg',0.8);
+                const d = JSON.parse(e.target.result);
+                if(confirm("Substituir dados atuais?")) {
+                    localStorage.setItem('veiculos', JSON.stringify(d.veiculos));
+                    localStorage.setItem('historico', JSON.stringify(d.historico));
+                    location.reload();
                 }
-            }; reader.readAsDataURL(input.files[0]);
+            }; reader.readAsText(input.files[0]);
         }
-        function setTipo(n,i,btn) { tSel={n,i}; document.querySelectorAll('.tipo-btn').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); }
-        function addVeiculo() {
-            const n = document.getElementById('g-nome').value; if(!n || !tempP) return alert("Dados incompletos!");
-            veiculos.push({ nome:n, tipo:tSel.n, icone:tSel.i, foto:tempP, fotoTecnica:tempT, pecas:[] });
-            localStorage.setItem('veiculos', JSON.stringify(veiculos)); renderGaragem();
+
+        // VEÍCULOS
+        function subirFoto(i,t) { 
+            const reader = new FileReader(); reader.onload=(e)=>{
+                const img=new Image(); img.src=e.target.result;
+                img.onload=()=>{
+                    const c=document.createElement('canvas'); const M=600; let w=img.width, h=img.height;
+                    if(w>M){h*=M/w; w=M;} c.width=w; c.height=h; c.getContext('2d').drawImage(img,0,0,w,h);
+                    if(t==='p') tempP=c.toDataURL('image/jpeg',0.7); else tempT=c.toDataURL('image/jpeg',0.7);
+                }
+            }; reader.readAsDataURL(i.files[0]);
         }
-        function excluirVeiculo(i) { if(confirm("Excluir este veículo e todos os dados dele?")) { veiculos.splice(i,1); localStorage.setItem('veiculos', JSON.stringify(veiculos)); renderGaragem(); } }
+        function setTipo(n,i,b) { tSel={n,i}; document.querySelectorAll('.tipo-btn').forEach(x=>x.classList.remove('active')); b.classList.add('active'); }
+        function addVeiculo() { const n=document.getElementById('g-nome').value; if(!n||!tempP) return alert("Erro!"); veiculos.push({nome:n,tipo:tSel.n,icone:tSel.i,foto:tempP,fotoTecnica:tempT,pecas:[]}); localStorage.setItem('veiculos', JSON.stringify(veiculos)); renderGaragem(); }
+        function excluirVeiculo(i) { if(confirm("Remover?")) { veiculos.splice(i,1); localStorage.setItem('veiculos', JSON.stringify(veiculos)); renderGaragem(); } }
         function renderGaragem() {
-            const c = document.getElementById('lista-garagem'); c.innerHTML = '';
-            veiculos.forEach((v,i) => {
-                c.innerHTML += `<div class="bg-white/5 p-4 rounded-2xl flex items-center border border-white/5">
-                    <img src="${v.foto}" class="w-12 h-12 rounded-xl object-cover mr-4">
-                    <div class="flex-1 text-xs font-black text-yellow-500 uppercase">${v.nome}</div>
-                    <div class="flex gap-2">
-                        <button onclick="selV(${i})" class="bg-white text-black px-3 py-2 rounded-lg text-[9px] font-black">USAR</button>
-                        <button onclick="abrirRaioX(${i})" class="bg-yellow-500 text-black px-3 py-2 rounded-lg text-[9px] font-black uppercase">MANTER</button>
-                        <button onclick="excluirVeiculo(${i})" class="bg-red-900/40 text-red-500 px-3 py-2 rounded-lg text-[9px] font-black uppercase">X</button>
-                    </div>
-                </div>`;
-            });
+            const c=document.getElementById('lista-garagem'); c.innerHTML='';
+            veiculos.forEach((v,i)=>{ c.innerHTML += `<div class="bg-white/5 p-4 rounded-2xl flex items-center border border-white/5"><img src="${v.foto}" class="w-10 h-10 rounded-lg object-cover mr-3"><div class="flex-1 text-[10px] font-black text-yellow-500 uppercase">${v.nome}</div><div class="flex gap-2"><button onclick="selV(${i})" class="bg-white text-black px-3 py-2 rounded-lg text-[9px] font-black">USAR</button><button onclick="abrirRaioX(${i})" class="bg-yellow-500 text-black px-3 py-2 rounded-lg text-[9px] font-black">MANTER</button><button onclick="excluirVeiculo(${i})" class="bg-red-900/40 text-red-500 px-3 py-2 rounded-lg text-[9px]">X</button></div></div>`; });
         }
         function selV(i) { vIdx=i; document.getElementById('v-txt').innerText=veiculos[i].nome; marker.setIcon(L.divIcon({className:'custom-marker', html:veiculos[i].icone})); showTab('dash'); }
 
-        // RAIO-X ZOOM PINÇA
-        const vp = document.getElementById('foto-tecnica-viewport');
-        const cv = document.getElementById('foto-tecnica-canvas');
-        vp.addEventListener('pointerdown', e => { evH.push(e); isP=true; sx=e.clientX-px; sy=e.clientY-py; });
-        vp.addEventListener('pointermove', e => {
-            const idx = evH.findIndex(ev => ev.pointerId === e.pointerId); evH[idx] = e;
-            if(evH.length === 2) {
-                const cur = Math.hypot(evH[0].clientX - evH[1].clientX, evH[0].clientY - evH[1].clientY);
-                if(pD > 0) sc = Math.min(Math.max(1, sc*(cur/pD)), 6); pD = cur;
-            } else if(isP && evH.length === 1) { px = e.clientX-sx; py = e.clientY-sy; }
-            cv.style.transform = `translate(${px}px, ${py}px) scale(${sc})`;
+        // RAIO-X PINÇA
+        const vp=document.getElementById('foto-tecnica-viewport'), cv=document.getElementById('foto-tecnica-canvas');
+        vp.addEventListener('pointerdown', e=>{ evH.push(e); isP=true; sx=e.clientX-px; sy=e.clientY-py; });
+        vp.addEventListener('pointermove', e=>{
+            const idx=evH.findIndex(v=>v.pointerId===e.pointerId); evH[idx]=e;
+            if(evH.length===2){ const c=Math.hypot(evH[0].clientX-evH[1].clientX, evH[0].clientY-evH[1].clientY); if(pD>0) sc=Math.min(Math.max(1,sc*(c/pD)),6); pD=c; }
+            else if(isP && evH.length===1){ px=e.clientX-sx; py=e.clientY-sy; }
+            cv.style.transform=`translate(${px}px,${py}px) scale(${sc})`;
         });
-        vp.addEventListener('pointerup', e => {
-            if(evH.length === 1 && Math.abs(e.clientX-sx-px) < 5) {
-                const r = vp.getBoundingClientRect(); pX = (e.clientX-r.left-px)/sc; pY = (e.clientY-r.top-py)/sc;
-                document.getElementById('peca-drawer').classList.add('open');
-            }
-            evH = evH.filter(ev => ev.pointerId !== e.pointerId); if(evH.length < 2) pD = -1; isP=false;
+        vp.addEventListener('pointerup', e=>{
+            if(evH.length===1 && Math.abs(e.clientX-sx-px)<5){ const r=vp.getBoundingClientRect(); pX=(e.clientX-r.left-px)/sc; pY=(e.clientY-r.top-py)/sc; document.getElementById('peca-drawer').classList.add('open'); }
+            evH=evH.filter(v=>v.pointerId!==e.pointerId); if(evH.length<2) pD=-1; isP=false;
         });
-        function abrirRaioX(i) { vIdx=i; if(!veiculos[i].fotoTecnica) return alert("Adicione Raio-X!"); document.getElementById('pecas-modal').style.display='block'; document.getElementById('foto-tecnica-img').src=veiculos[i].fotoTecnica; sc=1; px=0; py=0; cv.style.transform=`scale(1)`; renderPins(); renderListaPecas(); }
-        function confirmarPeca() {
-            const v = veiculos[vIdx]; v.pecas.push({ x:pX, y:pY, nome:document.getElementById('n-p').value, custo:document.getElementById('c-p').value, desgaste:document.getElementById('d-p').value, dias:document.getElementById('v-p').value });
-            localStorage.setItem('veiculos', JSON.stringify(veiculos)); fecharDrawer(); renderPins(); renderListaPecas();
-        }
-        function renderPins() {
-            const c = document.getElementById('pins-container'); c.innerHTML = '';
-            veiculos[vIdx].pecas.forEach(p => {
-                const isAlerta = p.desgaste > 90 ? 'alerta-pisca' : '';
-                const cor = p.desgaste > 90 ? '#ff0000' : (p.desgaste > 50 ? '#eab308' : '#22c55e');
-                c.innerHTML += `<div class="pin-micro ${isAlerta}" style="left:${p.x}px; top:${p.y}px; background:${cor}"></div>`;
-            });
-        }
-        function renderListaPecas() {
-            const l = document.getElementById('lista-pecas-raiox'); l.innerHTML = '';
-            veiculos[vIdx].pecas.forEach((p,i) => {
-                l.innerHTML += `<div class="bg-white/5 p-4 rounded-xl flex justify-between items-center border-l-2 border-yellow-500">
-                    <div class="text-[10px] font-bold uppercase">${p.nome}<br><span class="text-green-500">R$ ${p.custo}</span></div>
-                    <button onclick="removeP(${i})" class="text-red-500 font-bold text-xs">REMOVER</button>
-                </div>`;
-            });
-        }
-        function removeP(i) { veiculos[vIdx].pecas.splice(i,1); localStorage.setItem('veiculos', JSON.stringify(veiculos)); renderPins(); renderListaPecas(); }
-
-        // VIAGENS E HISTÓRICO
-        function finalizarViagem() {
-            if(totalDist < 100) return alert("Viagem muito curta.");
-            historico.unshift({ data: new Date().toLocaleString(), km: (totalDist/1000).toFixed(2), logs: [...speeds] });
-            localStorage.setItem('historico', JSON.stringify(historico.slice(0,10)));
-            location.reload();
-        }
-        function renderHistorico() {
-            const h = document.getElementById('lista-historico'); h.innerHTML = '';
-            historico.forEach((v, i) => {
-                h.innerHTML += `<div class="bg-gray-900 p-4 rounded-xl flex justify-between items-center">
-                    <span class="text-[10px] font-bold">${v.data} - ${v.km} KM</span>
-                    <button onclick="verGrafico(${i})" class="text-yellow-500 text-lg">📊</button>
-                </div>`;
-            });
-        }
-        function verGrafico(i) {
-            document.getElementById('chart-modal').style.display = 'block';
-            if(chart) chart.destroy();
-            chart = new Chart(document.getElementById('speedChart').getContext('2d'), {
-                type: 'line', data: { labels: historico[i].logs.map((_,x)=>x), datasets: [{ label:'KM/H', data: historico[i].logs, borderColor:'#eab308', fill:true, backgroundColor:'rgba(234,179,8,0.1)' }] },
-                options: { responsive:true, maintainAspectRatio:false, scales: { y: { beginAtZero: true } } }
-            });
-        }
+        function abrirRaioX(i){ vIdx=i; document.getElementById('pecas-modal').style.display='block'; document.getElementById('foto-tecnica-img').src=veiculos[i].fotoTecnica; sc=1; px=0; py=0; cv.style.transform=`scale(1)`; renderPins(); renderListaPecas(); }
+        function confirmarPeca(){ veiculos[vIdx].pecas.push({x:pX,y:pY,nome:document.getElementById('n-p').value,custo:document.getElementById('c-p').value,desgaste:document.getElementById('d-p').value,dias:document.getElementById('v-p').value}); localStorage.setItem('veiculos',JSON.stringify(veiculos)); fecharDrawer(); renderPins(); renderListaPecas(); }
+        function renderPins(){ const c=document.getElementById('pins-container'); c.innerHTML=''; veiculos[vIdx].pecas.forEach(p=>{ const cor=p.desgaste>90?'#f00':(p.desgaste>50?'#ea0':'#2c5'); c.innerHTML+=`<div class="pin-micro ${p.desgaste>90?'alerta-pisca':''}" style="left:${p.x}px;top:${p.y}px;background:${cor}"></div>`;}); }
+        function renderListaPecas(){ const l=document.getElementById('lista-pecas-raiox'); l.innerHTML=''; veiculos[vIdx].pecas.forEach((p,i)=>{ l.innerHTML+=`<div class="bg-white/5 p-4 rounded-xl flex justify-between items-center"><div class="text-[10px] font-bold uppercase">${p.nome} - R$ ${p.custo}</div><button onclick="removeP(${i})" class="text-red-500 font-bold text-[9px]">REMOVER</button></div>`; });}
+        function removeP(i){ veiculos[vIdx].pecas.splice(i,1); localStorage.setItem('veiculos',JSON.stringify(veiculos)); renderPins(); renderListaPecas(); }
 
         // AUXILIARES
-        function showTab(id) { document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active')); document.getElementById(id).classList.add('active'); if(id==='dash') map.invalidateSize(); }
-        function fecharPecas() { document.getElementById('pecas-modal').style.display='none'; }
-        function fecharDrawer() { document.getElementById('peca-drawer').classList.remove('open'); }
-        function recentralizar() { map.flyTo([userLat, userLon], 18); }
-        function bloquear() { document.getElementById('lock-screen').style.display='flex'; }
-        function desbloquear() { if(confirm("Desbloquear?")) document.getElementById('lock-screen').style.display='none'; }
+        function showTab(id){ document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active')); document.getElementById(id).classList.add('active'); if(id==='dash') map.invalidateSize(); }
+        function fecharPecas(){ document.getElementById('pecas-modal').style.display='none'; }
+        function fecharDrawer(){ document.getElementById('peca-drawer').classList.remove('open'); }
+        function recentralizar(){ map.flyTo([userLat,userLon],18); }
+        function bloquear(){ document.getElementById('lock-screen').style.display='flex'; }
+        function desbloquear(){ if(confirm("Sair?")) document.getElementById('lock-screen').style.display='none'; }
+        function finalizarViagem(){ if(totalDist<100) return alert("Curta."); historico.unshift({data:new Date().toLocaleString(), km:(totalDist/1000).toFixed(2), logs:[...speeds]}); localStorage.setItem('historico',JSON.stringify(historico.slice(0,10))); location.reload(); }
+        function renderHistorico(){ const h=document.getElementById('lista-historico'); h.innerHTML=''; historico.forEach((v,i)=>{ h.innerHTML+=`<div class="bg-gray-900 p-4 rounded-xl flex justify-between items-center"><span class="text-[9px] font-bold">${v.data} - ${v.km}KM</span><button onclick="verGrafico(${i})" class="text-yellow-500">📊</button></div>`; }); }
+        function verGrafico(i){ document.getElementById('chart-modal').style.display='block'; if(chart) chart.destroy(); chart=new Chart(document.getElementById('speedChart').getContext('2d'),{type:'line',data:{labels:historico[i].logs.map((_,x)=>x),datasets:[{label:'KM/H',data:historico[i].logs,borderColor:'#eab308',fill:true,backgroundColor:'rgba(234,179,8,0.1)'}]},options:{responsive:true,maintainAspectRatio:false}}); }
     </script>
 </body>
 </html>
