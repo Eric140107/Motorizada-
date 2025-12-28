@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AutoMonitor Ultra Pro + Track</title>
+    <title>AutoMonitor Ultra Pro + AutoSave</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
@@ -29,8 +29,8 @@
 
         .tipo-btn.active { border: 2px solid #eab308; background: rgba(234, 179, 8, 0.3); }
         
-        /* Estilo da Linha do Percurso */
-        .leaflet-interactive { stroke-dasharray: 10, 15; animation: dash 20s linear infinite; }
+        /* Estilo da Linha do Percurso - Mais fina e nítida para ruas */
+        .leaflet-interactive { stroke-dasharray: 8, 12; animation: dash 20s linear infinite; }
         @keyframes dash { to { stroke-dashoffset: -1000; } }
     </style>
 </head>
@@ -38,7 +38,7 @@
 
     <div id="lock-screen" onclick="toggleLock()">
         <div class="absolute bottom-10 left-1/2 -translate-x-1/2 glass px-6 py-3 rounded-full border-2 border-red-500 animate-bounce text-center">
-            <span class="text-xs font-black text-red-500 uppercase">Bloqueado - Toque para sair</span>
+            <span class="text-xs font-black text-red-500 uppercase">BLOQUEADO - TOQUE PARA SAIR</span>
         </div>
     </div>
 
@@ -55,7 +55,7 @@
                 <p id="veiculo-atual-nome" class="text-sm font-black text-yellow-500 truncate uppercase italic">S/ Veículo</p>
                 <div class="flex items-center justify-end gap-1 mt-1">
                     <span id="gps-dot" class="w-2 h-2 rounded-full bg-red-500"></span>
-                    <p id="status-gps" class="text-[9px] font-bold text-gray-400 uppercase tracking-tighter">Buscando sinal...</p>
+                    <p id="status-gps" class="text-[9px] font-bold text-gray-400 uppercase tracking-tighter">Sinal...</p>
                 </div>
             </div>
         </div>
@@ -63,7 +63,7 @@
         <div class="overlay top-36 left-4 right-4 flex gap-2">
             <div class="glass flex-1 p-3 rounded-2xl flex flex-col items-center">
                 <span id="dist-display" class="text-xl font-black text-white">0.00</span>
-                <span class="text-[8px] font-bold text-gray-500 uppercase">Distância KM</span>
+                <span class="text-[8px] font-bold text-gray-500 uppercase">KM Percorridos</span>
             </div>
             <div class="glass flex-1 p-3 rounded-2xl flex flex-col items-center">
                 <span id="time-display" class="text-xl font-black text-white">00:00:00</span>
@@ -73,20 +73,19 @@
 
         <div class="overlay bottom-28 right-6 flex flex-col gap-4 interactive">
             <button onclick="toggleLock()" class="glass w-14 h-14 rounded-full flex items-center justify-center text-xl border-2 border-red-500 shadow-2xl">🔒</button>
-            <button onclick="salvarEFinalizarViagem()" class="glass w-14 h-14 rounded-full flex items-center justify-center text-xl border-2 border-green-500 shadow-2xl">🏁</button>
             <button onclick="recentralizar()" id="btn-recenter" class="glass w-14 h-14 rounded-full flex items-center justify-center text-2xl border-2 border-yellow-500 opacity-30 shadow-2xl">📍</button>
         </div>
     </main>
 
     <main id="garagem" class="tab-content glass overflow-y-auto p-6 relative z-[100]">
         <div class="flex justify-between items-center mb-8">
-            <h2 class="text-2xl font-black italic text-yellow-500">GARAGEM & HISTÓRICO</h2>
-            <button onclick="showTab('dash')" class="text-xs bg-gray-700 px-5 py-2 rounded-full font-bold interactive uppercase">Mapa</button>
+            <h2 class="text-2xl font-black italic text-yellow-500 uppercase">Garagem</h2>
+            <button onclick="showTab('dash')" class="text-xs bg-gray-700 px-5 py-2 rounded-full font-bold interactive uppercase">Voltar</button>
         </div>
         
         <div class="bg-gray-800/40 p-6 rounded-3xl border border-gray-700 space-y-5 mb-10">
             <img id="preview-img" class="hidden w-full h-48 object-cover rounded-2xl border-2 border-yellow-500 shadow-xl">
-            <input type="text" id="nome" placeholder="Nome do Veículo" class="interactive w-full p-4 rounded-xl bg-gray-950 border border-gray-700 text-white outline-none focus:border-yellow-500">
+            <input type="text" id="nome" placeholder="Apelido da Máquina" class="interactive w-full p-4 rounded-xl bg-gray-950 border border-gray-700 text-white outline-none focus:border-yellow-500">
             <div class="flex justify-around bg-gray-950 p-3 rounded-2xl border border-gray-700 interactive">
                 <button onclick="setTipo('Bicicleta', '🚲')" class="tipo-btn p-3 text-3xl">🚲</button>
                 <button onclick="setTipo('Moto', '🏍️')" class="tipo-btn p-3 text-3xl">🏍️</button>
@@ -94,13 +93,13 @@
             </div>
             <input type="file" id="foto" accept="image/*" onchange="processarFoto(this)" class="hidden">
             <button onclick="document.getElementById('foto').click()" class="interactive w-full bg-gray-700 p-4 rounded-xl text-xs font-bold uppercase">📸 Foto</button>
-            <button onclick="salvarVeiculo()" class="interactive w-full bg-yellow-500 text-black p-5 rounded-2xl font-black uppercase">Salvar Máquina</button>
+            <button onclick="salvarVeiculo()" class="interactive w-full bg-yellow-500 text-black p-5 rounded-2xl font-black uppercase">Adicionar à Garagem</button>
         </div>
 
-        <h3 class="text-sm font-black text-gray-500 mb-4 uppercase tracking-widest">Veículos</h3>
+        <h3 class="text-sm font-black text-gray-500 mb-4 uppercase tracking-widest">Meus Veículos</h3>
         <div id="lista-veiculos" class="space-y-4 mb-10 interactive"></div>
 
-        <h3 class="text-sm font-black text-gray-500 mb-4 uppercase tracking-widest">Últimas Viagens</h3>
+        <h3 class="text-sm font-black text-gray-500 mb-4 uppercase tracking-widest">Histórico Automático</h3>
         <div id="historico-viagens" class="space-y-3 pb-32 interactive"></div>
     </main>
 
@@ -116,28 +115,43 @@
         let veiculos = JSON.parse(localStorage.getItem('veiculos') || '[]');
         let historico = JSON.parse(localStorage.getItem('historico') || '[]');
         let rotaAtual = [];
-        let autoCenter = true, totalDist = 0, startTime = null, lastCoord = null;
+        let autoCenter = true, totalDist = 0, startTime = Date.now(), lastCoord = null;
         let tipoEscolhido = { nome: '', icone: '📍' };
+
+        // SALVAMENTO AUTOMÁTICO AO SAIR
+        window.onbeforeunload = function() {
+            if (totalDist > 0.05) { // Só salva se andou mais de 50 metros
+                finalizarViagemSilencioso();
+            }
+        };
 
         window.onload = () => {
             initMap();
             startTracking();
             renderVeiculos();
             renderHistorico();
+            setInterval(updateTimer, 1000);
         };
 
         function showTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
             document.getElementById(tabId).classList.add('active');
-            if(tabId === 'dash') setTimeout(() => map.invalidateSize(), 100);
+            if(tabId === 'dash') setTimeout(() => map.invalidateSize(), 150);
         }
 
         function initMap() {
-            map = L.map('map', { zoomControl: false, attributionControl: false }).setView([0, 0], 2);
-            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
+            // ZOOM AUMENTADO PARA 20
+            map = L.map('map', { 
+                zoomControl: false, 
+                attributionControl: false,
+                maxZoom: 20 
+            }).setView([0, 0], 2);
+
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+                maxZoom: 20
+            }).addTo(map);
             
-            // Linha tracejada do percurso
-            polyline = L.polyline([], {color: '#3b82f6', weight: 5, opacity: 0.8, dashArray: '10, 15'}).addTo(map);
+            polyline = L.polyline([], {color: '#3b82f6', weight: 4, opacity: 0.7}).addTo(map);
             updateMarkerIcon('📍');
 
             map.on('movestart', (e) => { if (!e.hard) { autoCenter = false; document.getElementById('btn-recenter').classList.remove('opacity-30'); } });
@@ -152,36 +166,36 @@
 
         function startTracking() {
             if ("geolocation" in navigator) {
-                startTime = Date.now();
-                setInterval(updateTimer, 1000);
-
                 navigator.geolocation.watchPosition(pos => {
                     const acc = pos.coords.accuracy;
                     const lat = pos.coords.latitude;
                     const lon = pos.coords.longitude;
                     
-                    if(acc > 50) return; // Filtro de sinal ruim
+                    // FILTRO DE RUA: Ignora pontos com precisão pior que 25 metros
+                    if(acc > 25) return; 
 
                     if(lastCoord && pos.coords.speed > 0.5) {
                         let d = map.distance([lat, lon], [lastCoord.lat, lastCoord.lon]);
-                        totalDist += d;
-                        document.getElementById('dist-display').innerText = (totalDist / 1000).toFixed(2);
                         
-                        // Adiciona ponto na linha tracejada
-                        rotaAtual.push([lat, lon]);
-                        polyline.setLatLngs(rotaAtual);
+                        // FILTRO DE MOVIMENTO: Evita que o rastro "pule" em prédios
+                        if (d > 2 && d < 50) { 
+                            totalDist += d;
+                            document.getElementById('dist-display').innerText = (totalDist / 1000).toFixed(2);
+                            rotaAtual.push([lat, lon]);
+                            polyline.setLatLngs(rotaAtual);
+                        }
                     }
                     
                     lastCoord = {lat, lon};
                     userLat = lat; userLon = lon;
                     
-                    document.getElementById('gps-dot').className = acc < 20 ? "w-2 h-2 rounded-full bg-green-500" : "w-2 h-2 rounded-full bg-yellow-500 animate-pulse";
-                    document.getElementById('status-gps').innerText = acc < 20 ? "GPS Forte" : "GPS Médio";
+                    document.getElementById('gps-dot').className = acc < 15 ? "w-2 h-2 rounded-full bg-green-500" : "w-2 h-2 rounded-full bg-yellow-500 animate-pulse";
+                    document.getElementById('status-gps').innerText = acc < 15 ? "GPS Precisão" : "GPS OK";
                     document.getElementById('vel-display').innerText = pos.coords.speed ? (pos.coords.speed * 3.6).toFixed(0) : 0;
                     
                     marker.setLatLng([lat, lon]);
                     if(autoCenter) map.setView([lat, lon], 18, {animate: true});
-                }, null, { enableHighAccuracy: true });
+                }, null, { enableHighAccuracy: true, maximumAge: 0 });
             }
         }
 
@@ -194,41 +208,30 @@
             document.getElementById('time-display').innerText = `${h}:${m}:${s}`;
         }
 
-        function salvarEFinalizarViagem() {
-            if(totalDist < 10 && !confirm("Viagem muito curta. Salvar assim mesmo?")) return;
-            
+        function finalizarViagemSilencioso() {
             const novaViagem = {
-                data: new Date().toLocaleString(),
+                data: new Date().toLocaleString('pt-PT'),
                 distancia: (totalDist / 1000).toFixed(2),
                 tempo: document.getElementById('time-display').innerText,
                 veiculo: document.getElementById('veiculo-atual-nome').innerText
             };
-
             historico.unshift(novaViagem);
-            localStorage.setItem('historico', JSON.stringify(historico.slice(0, 20))); // Guarda as últimas 20
-            
-            // Reset
-            totalDist = 0;
-            rotaAtual = [];
-            polyline.setLatLngs([]);
-            startTime = Date.now();
-            renderHistorico();
-            alert("Viagem salva no histórico!");
+            localStorage.setItem('historico', JSON.stringify(historico.slice(0, 30)));
         }
 
         function renderHistorico() {
             const container = document.getElementById('historico-viagens');
-            container.innerHTML = historico.length === 0 ? '<p class="text-gray-600 text-xs text-center">Nenhuma viagem registrada.</p>' : '';
+            container.innerHTML = '';
             historico.forEach(v => {
                 container.innerHTML += `
                     <div class="bg-gray-900/60 p-4 rounded-2xl border border-gray-800">
-                        <div class="flex justify-between items-start mb-1">
-                            <span class="text-[10px] font-black text-yellow-500 uppercase">${v.veiculo}</span>
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="text-[10px] font-black text-yellow-500 uppercase italic">${v.veiculo}</span>
                             <span class="text-[9px] text-gray-500">${v.data}</span>
                         </div>
                         <div class="flex gap-4">
-                            <div class="text-sm font-bold">${v.distancia} <span class="text-[9px] text-gray-500">KM</span></div>
-                            <div class="text-sm font-bold">${v.tempo} <span class="text-[9px] text-gray-500">TEMPO</span></div>
+                            <div class="text-sm font-bold">${v.distancia}km</div>
+                            <div class="text-sm font-bold text-gray-300">${v.tempo}</div>
                         </div>
                     </div>`;
             });
@@ -239,6 +242,7 @@
             screen.style.display = (screen.style.display === 'block') ? 'none' : 'block';
         }
 
+        // Funções da Garagem (Mantidas)
         function processarFoto(input) {
             const preview = document.getElementById('preview-img');
             if (input.files && input.files[0]) {
@@ -269,13 +273,11 @@
 
         function salvarVeiculo() {
             const nome = document.getElementById('nome').value;
-            if (!nome || !tipoEscolhido.nome) return alert("Dados incompletos!");
-            try {
-                veiculos.push({id: Date.now(), nome, tipo: tipoEscolhido.nome, icone: tipoEscolhido.icone, foto: document.getElementById('preview-img').src});
-                localStorage.setItem('veiculos', JSON.stringify(veiculos));
-                renderVeiculos();
-                showTab('dash');
-            } catch (e) { alert("Memória cheia!"); }
+            if (!nome || !tipoEscolhido.nome) return alert("Preencha o nome e o tipo!");
+            veiculos.push({id: Date.now(), nome, tipo: tipoEscolhido.nome, icone: tipoEscolhido.icone, foto: document.getElementById('preview-img').src});
+            localStorage.setItem('veiculos', JSON.stringify(veiculos));
+            renderVeiculos();
+            showTab('dash');
         }
 
         function renderVeiculos() {
@@ -285,8 +287,8 @@
                 container.innerHTML += `
                     <div class="bg-gray-950/80 rounded-3xl overflow-hidden border border-gray-800 flex p-3 items-center">
                         <img src="${v.foto}" class="w-16 h-16 rounded-2xl object-cover mr-4">
-                        <div class="flex-1 text-xs">
-                            <h3 class="font-black text-yellow-500 uppercase italic leading-none">${v.nome}</h3>
+                        <div class="flex-1">
+                            <h3 class="font-black text-yellow-500 uppercase text-xs italic leading-none">${v.nome}</h3>
                             <p class="text-[9px] text-gray-500 mt-1 uppercase font-bold">${v.icone} ${v.tipo}</p>
                         </div>
                         <div class="flex gap-2">
@@ -306,10 +308,10 @@
         }
 
         function apagar(i) {
-            if(confirm("Apagar veículo?")) { veiculos.splice(i, 1); localStorage.setItem('veiculos', JSON.stringify(veiculos)); renderVeiculos(); }
+            if(confirm("Remover veículo?")) { veiculos.splice(i, 1); localStorage.setItem('veiculos', JSON.stringify(veiculos)); renderVeiculos(); }
         }
 
-        function recentralizar() { autoCenter = true; document.getElementById('btn-recenter').classList.add('opacity-30'); if(userLat) map.flyTo([userLat, userLon], 18); }
+        function recentralizar() { autoCenter = true; document.getElementById('btn-recenter').classList.add('opacity-30'); if(userLat) map.flyTo([userLat, userLon], 19); }
     </script>
 </body>
 </html>
