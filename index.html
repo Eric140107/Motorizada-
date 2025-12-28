@@ -3,155 +3,153 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AutoMonitor - Ultra Glass Edition</title>
+    <title>AutoMonitor - Ultra Vision</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
-        :root {
-            --red: #ff0033;
-            --blue: #00f2ff;
-            --bg-glass: rgba(255, 255, 255, 0.03);
-        }
+        :root { --red: #ff0033; --blue: #00f2ff; --glass: rgba(0, 0, 0, 0.6); }
 
         html, body { background: #000; color: #fff; height: 100%; margin: 0; overflow: hidden; font-family: 'Inter', sans-serif; }
         
-        #map { position: fixed; inset: 0; z-index: 1; filter: grayscale(1) brightness(0.2); }
+        /* MAPA COM CORES CUSTOMIZADAS */
+        #map { 
+            position: fixed; inset: 0; z-index: 1; 
+            filter: grayscale(1) brightness(0.4) sepia(0.2) hue-rotate(180deg) saturate(2); 
+        }
 
-        /* GLASS SYSTEM */
-        .tab-content { display: none; height: 100vh; width: 100vw; overflow-y: auto; padding: 20px; padding-bottom: 150px; position: relative; z-index: 50; }
-        .tab-content.active { display: block; animation: fadeIn 0.3s ease; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        /* SISTEMA DE CAMADAS */
+        .tab-content { display: none; height: 100vh; width: 100vw; overflow-y: auto; padding: 15px; padding-bottom: 140px; position: relative; z-index: 50; }
+        .tab-content.active { display: block; }
 
-        .glass { 
-            background: var(--bg-glass); 
-            backdrop-filter: blur(25px); 
-            -webkit-backdrop-filter: blur(25px);
-            border-radius: 24px;
+        /* CARDS COMPACTOS (PÍLULAS) */
+        .glass-pill { 
+            background: var(--glass); 
+            backdrop-filter: blur(20px); 
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 50px;
             border: 1px solid rgba(255,255,255,0.1);
         }
 
-        /* NEON GLOWS */
-        .glow-red { border: 1px solid rgba(255, 0, 51, 0.4); box-shadow: 0 0 20px rgba(255, 0, 51, 0.2); }
-        .glow-blue { border: 1px solid rgba(0, 242, 255, 0.4); box-shadow: 0 0 20px rgba(0, 242, 255, 0.2); }
+        .glow-red { border-color: var(--red); box-shadow: 0 0 25px rgba(255, 0, 51, 0.4); }
+        .glow-blue { border-color: var(--blue); box-shadow: 0 0 25px rgba(0, 242, 255, 0.4); }
 
-        /* VELOCÍMETRO */
-        .speed-container { position: relative; width: 230px; height: 230px; display: flex; align-items: center; justify-content: center; }
+        /* VELOCÍMETRO COMPACTO */
+        .speed-min-container { position: relative; width: 160px; height: 160px; display: flex; align-items: center; justify-content: center; margin: 0 auto; }
         #speed-svg { position: absolute; width: 100%; height: 100%; transform: rotate(-90deg); }
-        #speed-bar { fill: none; stroke-width: 8; stroke-dasharray: 440; stroke-dashoffset: 440; transition: 0.3s; stroke-linecap: round; }
+        #speed-bar { fill: none; stroke-width: 6; stroke-dasharray: 440; stroke-dashoffset: 440; transition: 0.3s; stroke-linecap: round; }
 
         /* NAVBAR */
         nav { 
-            position: fixed; bottom: 25px; left: 20px; right: 20px; height: 75px; 
+            position: fixed; bottom: 25px; left: 20px; right: 20px; height: 70px; 
             display: flex; justify-content: space-around; align-items: center; 
-            z-index: 5000; background: rgba(0, 0, 0, 0.8);
-            backdrop-filter: blur(30px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 25px;
+            z-index: 5000; background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(25px); border: 1px solid rgba(255,255,255,0.15); border-radius: 35px;
         }
 
-        /* RAIO-X */
-        #foto-tecnica-viewport { position: relative; width: 100%; aspect-ratio: 16/9; overflow: hidden; border-radius: 20px; background: #000; border: 1px solid #333; touch-action: none; }
+        /* RAIO-X VIEWPORT */
+        #foto-tecnica-viewport { position: relative; width: 100%; aspect-ratio: 16/9; overflow: hidden; border-radius: 20px; background: #000; touch-action: none; }
         #foto-tecnica-canvas { position: absolute; transform-origin: 0 0; width: 100%; height: 100%; pointer-events: none; }
-        .pin-micro { position: absolute; width: 12px; height: 12px; border-radius: 50%; transform: translate(-50%, -50%); background: var(--blue); box-shadow: 0 0 10px var(--blue); border: 2px solid #fff; }
+        .pin-micro { position: absolute; width: 14px; height: 14px; border-radius: 50%; transform: translate(-50%, -50%); background: var(--blue); box-shadow: 0 0 15px var(--blue); border: 2px solid #fff; }
 
-        .btn-interact:active { transform: scale(0.92); filter: brightness(1.2); }
-        .custom-marker { font-size: 26px; filter: drop-shadow(0 0 10px var(--red)); }
+        .btn-interact:active { transform: scale(0.9); }
+        .custom-marker { font-size: 26px; filter: drop-shadow(0 0 10px var(--red)); transition: 0.2s; }
     </style>
 </head>
 <body>
 
     <div id="lock-screen" class="hidden fixed inset-0 z-[9999] bg-black flex flex-col items-center justify-center">
-        <div class="speed-container">
-            <svg id="speed-svg" viewBox="0 0 160 160"><circle cx="80" cy="80" r="70" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="8"></circle><circle id="speed-bar-lock" cx="80" cy="80" r="70" stroke="var(--red)" stroke-width="8" fill="none"></circle></svg>
-            <span id="vel-lock" class="text-8xl font-black italic">0</span>
+        <div class="speed-min-container">
+            <svg id="speed-svg" viewBox="0 0 160 160"><circle cx="80" cy="80" r="70" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="6"></circle><circle id="speed-bar-lock" cx="80" cy="80" r="70" stroke="var(--red)" stroke-width="6" fill="none"></circle></svg>
+            <span id="vel-lock" class="text-7xl font-black italic text-red-600">0</span>
         </div>
-        <button onclick="desbloquear()" class="btn-interact mt-16 w-24 h-24 glass glow-red flex items-center justify-center text-4xl">🔓</button>
+        <button onclick="desbloquear()" class="btn-interact mt-12 w-20 h-20 glass-pill glow-red flex items-center justify-center text-3xl">🔓</button>
     </div>
 
     <div id="pecas-modal" class="hidden fixed inset-0 z-[2000] bg-black/95 p-4 overflow-y-auto">
-        <div class="flex justify-between items-center mb-6">
-            <h3 class="text-cyan-400 font-bold text-xs uppercase tracking-widest">Diagnóstico de Peças</h3>
-            <button onclick="fecharPecas()" class="glass glow-blue px-6 py-2 text-[10px] font-bold">FECHAR</button>
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-cyan-400 font-bold text-[10px] uppercase tracking-[0.2em]">Diagnóstico de Hardware</h3>
+            <button onclick="fecharPecas()" class="glass-pill px-6 py-2 text-[9px] font-bold border-cyan-500/30">FECHAR</button>
         </div>
-        <div id="foto-tecnica-viewport">
+        <div id="foto-tecnica-viewport" class="border border-white/10">
             <div id="foto-tecnica-canvas">
                 <img id="foto-tecnica-img" class="w-full h-full object-contain">
                 <div id="pins-container" class="absolute inset-0"></div>
             </div>
         </div>
-        <div id="lista-pecas-raiox" class="mt-6 space-y-3 pb-24"></div>
-        <div id="peca-drawer" class="fixed inset-y-0 right-0 w-80 glass glow-blue m-2 translate-x-[110%] transition-transform duration-300 z-[2100] p-8 flex flex-col">
-            <h4 class="text-cyan-400 font-black mb-8 uppercase text-sm">Novo Item</h4>
-            <input type="text" id="n-p" placeholder="Nome da Peça" class="w-full bg-white/5 p-4 rounded-xl mb-4 outline-none border border-white/10">
-            <input type="number" id="c-p" placeholder="Valor (R$)" class="w-full bg-white/5 p-4 rounded-xl mb-6 outline-none border border-white/10">
-            <button onclick="confirmarPeca()" class="w-full bg-cyan-500 text-black p-4 rounded-xl font-black uppercase text-xs">Adicionar ao Raio-X</button>
-            <button onclick="fecharDrawer()" class="w-full text-gray-500 text-[10px] mt-4 font-bold uppercase">Cancelar</button>
+        <div id="lista-pecas-raiox" class="mt-6 space-y-2 pb-24"></div>
+        <div id="peca-drawer" class="fixed inset-y-0 right-0 w-72 glass-pill glow-blue m-2 translate-x-[115%] transition-transform duration-300 z-[2100] p-6 flex flex-col justify-center">
+            <input type="text" id="n-p" placeholder="Nome do Componente" class="bg-white/5 p-4 rounded-2xl mb-4 border border-white/10 outline-none">
+            <input type="number" id="c-p" placeholder="Custo R$" class="bg-white/5 p-4 rounded-2xl mb-6 border border-white/10">
+            <button onclick="confirmarPeca()" class="bg-cyan-500 text-black p-4 rounded-2xl font-black uppercase text-xs">Salvar</button>
+            <button onclick="fecharDrawer()" class="mt-4 text-[10px] text-gray-500 font-bold uppercase">Voltar</button>
         </div>
     </div>
 
     <main id="dash" class="tab-content active">
         <div id="map"></div>
-        <div class="relative z-[60] space-y-4">
-            <div class="glass glow-red flex justify-center py-10">
-                <div class="speed-container">
-                    <svg id="speed-svg" viewBox="0 0 160 160"><circle cx="80" cy="80" r="70" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="8"></circle><circle id="speed-bar" cx="80" cy="80" r="70" stroke="var(--blue)" stroke-width="8" fill="none"></circle></svg>
-                    <div class="text-center">
-                        <span id="vel-display" class="text-7xl font-black italic">0</span>
-                        <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Velocidade KM/H</p>
-                    </div>
+        
+        <div class="relative z-[60] flex flex-col gap-3">
+            <div class="glass-pill glow-red py-6 mx-auto w-48 text-center">
+                <div class="speed-min-container">
+                    <svg id="speed-svg" viewBox="0 0 160 160"><circle cx="80" cy="80" r="70" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="6"></circle><circle id="speed-bar" cx="80" cy="80" r="70" stroke="var(--blue)" stroke-width="6" fill="none"></circle></svg>
+                    <span id="vel-display" class="text-6xl font-black italic">0</span>
                 </div>
             </div>
-            <div class="grid grid-cols-2 gap-4">
-                <div class="glass glow-red p-6">
-                    <p class="text-[9px] text-red-500 font-black uppercase mb-1">Distância</p>
-                    <p id="dist-txt" class="text-2xl font-black italic">0.00 <span class="text-xs">KM</span></p>
+
+            <div class="flex justify-between gap-3 px-2">
+                <div class="glass-pill glow-red flex-1 px-4 py-2 flex items-center justify-between">
+                    <span class="text-[8px] font-black uppercase text-red-500">Km</span>
+                    <span id="dist-txt" class="text-sm font-bold">0.00</span>
                 </div>
-                <div class="glass glow-blue p-6">
-                    <p class="text-[9px] text-cyan-400 font-black uppercase mb-1">Ativo</p>
-                    <p id="v-txt" class="text-sm font-bold truncate">Selecione...</p>
+                <div class="glass-pill glow-blue flex-1 px-4 py-2 flex items-center justify-between">
+                    <span class="text-[8px] font-black uppercase text-cyan-400">Ativo</span>
+                    <span id="v-txt" class="text-[10px] font-bold truncate max-w-[60px]">...</span>
                 </div>
             </div>
         </div>
+
         <div class="fixed bottom-32 right-6 flex flex-col gap-4 z-[60]">
-            <button onclick="bloquear()" class="glass glow-red btn-interact w-14 h-14 flex items-center justify-center text-xl">🔒</button>
-            <button onclick="finalizarViagem()" class="glass glow-blue btn-interact w-14 h-14 flex items-center justify-center text-xl">🏁</button>
-            <button onclick="recentralizar()" class="glass glow-blue btn-interact w-14 h-14 flex items-center justify-center text-xl">📍</button>
+            <button onclick="bloquear()" class="glass-pill glow-red w-12 h-12 flex items-center justify-center text-lg border-red-500/30">🔒</button>
+            <button onclick="finalizarViagem()" class="glass-pill glow-blue w-12 h-12 flex items-center justify-center text-lg border-white/20">🏁</button>
+            <button onclick="recentralizar()" class="glass-pill glow-blue w-12 h-12 flex items-center justify-center text-lg border-cyan-400/30">📍</button>
         </div>
     </main>
 
     <main id="garagem" class="tab-content">
-        <div class="p-2 space-y-6">
-            <h2 class="text-2xl font-black italic tracking-tighter">SISTEMA DE GARAGEM</h2>
-            <div class="glass glow-red p-6">
-                <input type="text" id="g-nome" placeholder="Modelo do Veículo" class="w-full bg-white/5 p-4 rounded-xl border border-white/10 mb-4 outline-none focus:border-red-500">
-                <div class="grid grid-cols-2 gap-3 mb-4">
-                    <button onclick="document.getElementById('f-p').click()" class="bg-white/5 p-4 rounded-xl text-[9px] font-bold border border-white/10 uppercase">Foto Perfil</button>
-                    <button onclick="document.getElementById('f-t').click()" class="bg-white/5 p-4 rounded-xl text-[9px] font-bold border border-white/10 uppercase">Foto Raio-X</button>
+        <div class="space-y-6">
+            <div class="glass-pill glow-red p-6 mt-4">
+                <h2 class="text-xs font-black uppercase text-red-500 mb-4 tracking-widest">Novo Registro</h2>
+                <input type="text" id="g-nome" placeholder="Nome do Carro" class="w-full bg-white/5 p-4 rounded-2xl border border-white/10 mb-4 outline-none">
+                <div class="grid grid-cols-2 gap-2 mb-4">
+                    <button onclick="document.getElementById('f-p').click()" class="bg-white/5 p-3 rounded-xl text-[9px] font-bold border border-white/10 uppercase">Foto Perfil</button>
+                    <button onclick="document.getElementById('f-t').click()" class="bg-white/5 p-3 rounded-xl text-[9px] font-bold border border-white/10 uppercase">Foto Raio-X</button>
                 </div>
-                <button onclick="addVeiculo()" class="w-full bg-red-600 text-white p-4 rounded-xl font-black text-xs uppercase">Salvar na Garagem</button>
+                <button onclick="addVeiculo()" class="w-full bg-red-600 text-white p-4 rounded-2xl font-black text-xs uppercase">Cadastrar</button>
             </div>
 
-            <div id="lista-garagem" class="space-y-4"></div>
+            <div id="lista-garagem" class="space-y-3"></div>
 
-            <div class="glass glow-blue p-6 mt-10">
-                <p class="text-[10px] font-black text-cyan-400 mb-4 uppercase tracking-widest">Backup de Nuvem Local</p>
-                <div class="grid grid-cols-2 gap-4">
-                    <button onclick="exportarBackup()" class="bg-cyan-500/10 text-cyan-400 p-4 rounded-xl text-[10px] font-bold border border-cyan-500/20 uppercase">Exportar JSON</button>
-                    <button onclick="document.getElementById('rest-input').click()" class="bg-white/5 p-4 rounded-xl text-[10px] font-bold border border-white/10 uppercase">Importar JSON</button>
+            <div class="glass-pill glow-blue p-6">
+                <p class="text-[9px] font-black text-cyan-400 mb-4 uppercase text-center tracking-widest">Sincronização de Dados</p>
+                <div class="grid grid-cols-2 gap-3">
+                    <button onclick="exportarBackup()" class="bg-cyan-500/10 text-cyan-400 p-3 rounded-xl text-[9px] font-bold border border-cyan-500/20">EXPORTAR</button>
+                    <button onclick="document.getElementById('rest-input').click()" class="bg-white/5 p-3 rounded-xl text-[9px] font-bold border border-white/10">IMPORTAR</button>
                 </div>
                 <input type="file" id="rest-input" class="hidden" onchange="importarBackup(this)">
             </div>
             
-            <div id="lista-historico" class="space-y-3 pb-20"></div>
+            <div id="lista-historico" class="space-y-2 pb-20"></div>
         </div>
     </main>
 
     <nav>
         <button onclick="showTab('dash')" class="btn-interact">
-            <span id="nav-dash-icon" class="text-2xl">📊</span>
-            <span id="nav-dash-text" class="text-[9px] font-black text-red-600 uppercase mt-1">Dash</span>
+            <span id="nav-dash-icon" class="text-xl">📊</span>
+            <span id="nav-dash-text" class="text-[8px] font-black text-red-600 uppercase mt-1">Status</span>
         </button>
         <button onclick="showTab('garagem')" class="btn-interact">
-            <span id="nav-garagem-icon" class="text-2xl opacity-40">🏎️</span>
-            <span id="nav-garagem-text" class="text-[9px] font-black text-gray-500 uppercase mt-1">Garagem</span>
+            <span id="nav-garagem-icon" class="text-xl opacity-40">📦</span>
+            <span id="nav-garagem-text" class="text-[8px] font-black text-gray-500 uppercase mt-1">Dados</span>
         </button>
     </nav>
 
@@ -166,14 +164,13 @@
         let tSel = { n:'Nenhum', i:'🏎️' }, tempP, tempT, vIdx = null, logSegundos = [];
         let route = [], currentSpeed=0, totalDist=0, lastCoord=null;
         
-        // RAIO-X STATE
         let sc=1, px=0, py=0, evH=[], pD=-1, sx, sy, isP=false, pX, pY, isZooming=false;
         const vp=document.getElementById('foto-tecnica-viewport'), cv=document.getElementById('foto-tecnica-canvas');
 
         window.onload = () => {
             map = L.map('map',{zoomControl:false, attributionControl:false}).setView([0,0],2);
             L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
-            polyline = L.polyline([], {color:'#ff0033', weight:5}).addTo(map);
+            polyline = L.polyline([], {color:'#ff0033', weight:4, opacity:0.7}).addTo(map);
             
             navigator.geolocation.watchPosition(pos => {
                 userLat = pos.coords.latitude; userLon = pos.coords.longitude;
@@ -188,12 +185,15 @@
                 document.getElementById('speed-bar-lock').style.strokeDashoffset = offset;
                 document.getElementById('speed-bar').style.stroke = vel > 100 ? 'var(--red)' : 'var(--blue)';
 
-                if(currentSpeed > 0.5) {
-                    if(lastCoord) totalDist += map.distance([userLat, userLon], [lastCoord.lat, lastCoord.lon]);
+                if(currentSpeed > 0.8) {
+                    if(lastCoord) {
+                        let d = map.distance([userLat, userLon], [lastCoord.lat, lastCoord.lon]);
+                        if(d < 100) totalDist += d;
+                    }
                     route.push([userLat, userLon]);
                     polyline.setLatLngs(route);
                     logSegundos.push({h: new Date().toLocaleTimeString('pt-BR'), v: currentSpeed.toFixed(1)});
-                    document.getElementById('dist-txt').innerHTML = `${(totalDist/1000).toFixed(2)} <span class="text-xs">KM</span>`;
+                    document.getElementById('dist-txt').innerText = (totalDist/1000).toFixed(2);
                 }
                 lastCoord = {lat:userLat, lon:userLon};
                 if(!marker) {
@@ -216,11 +216,11 @@
             if(isDash) map.invalidateSize();
         }
 
-        // BACKUP
         function exportarBackup() {
             const b = new Blob([JSON.stringify({veiculos, historico})], {type:'application/json'});
-            const a = document.createElement('a'); a.href=URL.createObjectURL(b); a.download='automonitor_backup.json'; a.click();
+            const a = document.createElement('a'); a.href=URL.createObjectURL(b); a.download='telemetria_backup.json'; a.click();
         }
+
         function importarBackup(input) {
             const f = new FileReader();
             f.onload = e => {
@@ -233,7 +233,6 @@
             f.readAsText(input.files[0]);
         }
 
-        // RAIO-X LÓGICA
         function initRaioX(){
             vp.addEventListener('pointerdown', e=>{ evH.push(e); isP=true; sx=e.clientX-px; sy=e.clientY-py; if(evH.length>=2) isZooming=true; });
             vp.addEventListener('pointermove', e=>{
@@ -258,7 +257,7 @@
 
         function abrirRaioX(i){ vIdx=i; document.getElementById('pecas-modal').style.display='block'; document.getElementById('foto-tecnica-img').src=veiculos[i].fotoTecnica; px=0; py=0; sc=1; cv.style.transform='scale(1)'; renderPins(); renderListaPecas(); }
         function fecharPecas(){ document.getElementById('pecas-modal').style.display='none'; }
-        function fecharDrawer(){ document.getElementById('peca-drawer').style.transform='translateX(110%)'; }
+        function fecharDrawer(){ document.getElementById('peca-drawer').style.transform='translateX(115%)'; }
         function confirmarPeca(){
             const n=document.getElementById('n-p').value; if(!n) return;
             veiculos[vIdx].pecas.push({x:pX, y:pY, nome:n, custo:document.getElementById('c-p').value});
@@ -270,7 +269,7 @@
         }
         function renderListaPecas(){
             const l=document.getElementById('lista-pecas-raiox'); l.innerHTML='';
-            veiculos[vIdx].pecas.forEach((p,i)=>{ l.innerHTML+=`<div class="glass p-5 flex justify-between items-center border border-white/5"><span class="text-xs font-bold uppercase">${p.nome}</span><button onclick="removeP(${i})" class="text-red-500 font-black text-[10px]">REMOVER</button></div>`; });
+            veiculos[vIdx].pecas.forEach((p,i)=>{ l.innerHTML+=`<div class="glass-pill p-4 flex justify-between items-center border-white/5"><span class="text-[10px] font-bold uppercase">${p.nome}</span><button onclick="removeP(${i})" class="text-red-500 font-black text-[9px]">REMOVER</button></div>`; });
         }
         function removeP(i){ veiculos[vIdx].pecas.splice(i,1); localStorage.setItem('veiculos', JSON.stringify(veiculos)); renderPins(); renderListaPecas(); }
 
@@ -279,16 +278,16 @@
         function renderGaragem(){
             const l=document.getElementById('lista-garagem'); l.innerHTML='';
             veiculos.forEach((v,i)=>{
-                l.innerHTML += `<div class="glass p-4 flex items-center mb-2 glow-red"><img src="${v.foto}" class="w-14 h-14 rounded-2xl object-cover mr-4"><div class="flex-1 font-bold text-xs uppercase">${v.nome}</div><div class="flex gap-2"><button onclick="selV(${i})" class="bg-white text-black px-4 py-2 rounded-xl text-[9px] font-black">ATIVAR</button><button onclick="abrirRaioX(${i})" class="bg-cyan-500 text-black px-4 py-2 rounded-xl text-[9px] font-black uppercase">Raio-X</button></div></div>`;
+                l.innerHTML += `<div class="glass-pill p-4 flex items-center mb-2 glow-red"><img src="${v.foto}" class="w-12 h-12 rounded-full object-cover mr-4"><div class="flex-1 font-bold text-[10px] uppercase">${v.nome}</div><div class="flex gap-2"><button onclick="selV(${i})" class="bg-white text-black px-3 py-1 rounded-full text-[8px] font-black">ATIVAR</button><button onclick="abrirRaioX(${i})" class="bg-cyan-500 text-black px-3 py-1 rounded-full text-[8px] font-black uppercase">PEÇAS</button></div></div>`;
             });
         }
         function selV(i){ vIdx=i; document.getElementById('v-txt').innerText=veiculos[i].nome; showTab('dash'); }
         function renderHistorico(){
             const l=document.getElementById('lista-historico'); l.innerHTML='';
-            historico.forEach((h,i)=>{ l.innerHTML+=`<div class="glass p-4 flex justify-between items-center"><span class="text-[10px] text-gray-400 font-black uppercase">${h.km} KM - ${h.data}</span><button onclick="baixarCSV(${i})" class="text-cyan-400 font-bold">LOG</button></div>`; });
+            historico.forEach((h,i)=>{ l.innerHTML+=`<div class="glass-pill p-4 flex justify-between items-center border-white/5"><span class="text-[9px] text-gray-400 font-black uppercase">${h.km} KM - ${h.data}</span><button onclick="baixarCSV(${i})" class="text-cyan-400 font-bold text-[10px]">LOG</button></div>`; });
         }
         function finalizarViagem(){ if(totalDist<50) return alert("Distância curta"); historico.unshift({data:new Date().toLocaleDateString(), km:(totalDist/1000).toFixed(2), detalhes:logSegundos}); localStorage.setItem('historico', JSON.stringify(historico.slice(0,10))); location.reload(); }
-        function baixarCSV(i){ let c="H;V\n"; historico[i].detalhes.forEach(d=>c+=`${d.h};${d.v}\n`); const b=new Blob([c],{type:'text/csv'}); const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download=`viagem.csv`; a.click(); }
+        function baixarCSV(i){ let c="H;V\n"; historico[i].detalhes.forEach(d=>c+=`${d.h};${d.v}\n`); const b=new Blob([c],{type:'text/csv'}); const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download=`log_viagem.csv`; a.click(); }
         function recentralizar(){ map.flyTo([userLat,userLon], 18); }
         function bloquear(){ document.getElementById('lock-screen').style.display='flex'; }
         function desbloquear(){ document.getElementById('lock-screen').style.display='none'; }
