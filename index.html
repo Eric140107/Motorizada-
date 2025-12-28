@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Astra Monitor - Gestão Total</title>
+    <title>Astra Monitor - Cockpit Mode</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
@@ -11,8 +11,9 @@
         html, body { background: #000; color: #fff; height: 100%; margin: 0; overflow: hidden; font-family: 'Inter', sans-serif; }
         #map { position: fixed; inset: 0; z-index: 1; background: #090909; }
         
-        #blackout { display: none; position: fixed; inset: 0; background: #000; z-index: 9999; cursor: pointer; }
-        #blackout.active { display: flex; align-items: center; justify-content: center; }
+        /* MODO BLOQUEIO COM VELOCÍMETRO */
+        #blackout { display: none; position: fixed; inset: 0; background: #000; z-index: 9999; flex-direction: column; align-items: center; justify-content: center; }
+        #blackout.active { display: flex; }
 
         .tab-content { display: none; height: 100vh; width: 100vw; overflow-y: auto; padding: 15px; padding-bottom: 140px; position: relative; z-index: 50; pointer-events: none; }
         .tab-content.active { display: block; }
@@ -24,6 +25,7 @@
 
         .custom-marker { font-size: 42px; display: flex; align-items: center; justify-content: center; }
 
+        /* RAIO-X */
         #foto-tecnica-viewport { position: relative; width: 100%; aspect-ratio: 16/9; overflow: hidden; border-radius: 20px; background: #000; border: 1px solid #333; touch-action: none; }
         #foto-tecnica-canvas { position: absolute; transform-origin: 0 0; width: 100%; height: 100%; }
         .pin-micro { position: absolute; width: 22px; height: 22px; border-radius: 50%; background: var(--blue); border: 2px solid #fff; box-shadow: 0 0 10px var(--blue); transform: translate(-50%, -50%); display: flex; align-items: center; justify-content: center; font-size: 10px; color: #000; font-weight: bold; pointer-events: none; }
@@ -34,7 +36,14 @@
 </head>
 <body>
 
-    <div id="blackout" onclick="toggleLock()"><p class="text-gray-800 text-[10px] font-black uppercase">Modo Privado Ativo</p></div>
+    <div id="blackout">
+        <div class="text-center">
+            <span id="vel-lock" class="text-8xl font-black italic text-red-600">0</span>
+            <p class="text-xs uppercase font-bold text-red-900 tracking-widest">KM/H • MONITORANDO</p>
+        </div>
+        <button onclick="pedirDesbloqueio()" class="mt-20 glass-pill px-8 py-3 text-[10px] font-black uppercase tracking-tighter border-red-900 text-red-900">Toque para Desbloquear</button>
+    </div>
+
     <div id="map"></div>
 
     <main id="dash" class="tab-content active">
@@ -55,7 +64,7 @@
             </div>
         </div>
         <div class="fixed bottom-32 right-6 flex flex-col gap-4">
-            <button onclick="toggleLock()" class="glass-pill glow-red w-14 h-14 flex items-center justify-center text-2xl">🔒</button>
+            <button onclick="ativarBloqueio()" class="glass-pill glow-red w-14 h-14 flex items-center justify-center text-2xl">🔒</button>
             <button onclick="recentralizar()" class="glass-pill glow-blue w-14 h-14 flex items-center justify-center text-2xl">📍</button>
             <button onclick="finalizarViagem()" class="glass-pill glow-red w-14 h-14 flex items-center justify-center text-2xl">🏁</button>
         </div>
@@ -64,7 +73,7 @@
     <main id="garagem" class="tab-content">
         <div class="space-y-6 pb-20">
             <div class="glass-pill glow-red p-6">
-                <h2 id="garage-title" class="text-xs font-black uppercase text-red-500 mb-4 text-center">Garagem Astra</h2>
+                <h2 id="garage-title" class="text-xs font-black uppercase text-red-500 mb-4 text-center">Gestão</h2>
                 <div class="flex flex-col gap-2">
                     <input type="text" id="g-nome" placeholder="Nome">
                     <div class="grid grid-cols-2 gap-2">
@@ -75,52 +84,32 @@
                         <button onclick="document.getElementById('f-p').click()" class="bg-white/5 p-3 rounded-xl text-[9px] font-bold uppercase">Foto Perfil</button>
                         <button onclick="document.getElementById('f-t').click()" class="bg-white/5 p-3 rounded-xl text-[9px] font-bold uppercase">Foto Raio-X</button>
                     </div>
-                    <button onclick="salvarVeiculo()" class="w-full bg-red-600 p-4 rounded-xl font-black text-xs uppercase">Gravar Veículo</button>
+                    <button onclick="salvarVeiculo()" class="w-full bg-red-600 p-4 rounded-xl font-black text-xs uppercase">Salvar</button>
                 </div>
             </div>
-            
             <div id="lista-garagem" class="space-y-3"></div>
-
-            <h3 class="text-cyan-400 font-black text-[10px] uppercase ml-2">Histórico de Rotas</h3>
+            <h3 class="text-cyan-400 font-black text-[10px] uppercase ml-2">Histórico</h3>
             <div id="lista-historico" class="space-y-2"></div>
-            
             <div class="glass-pill glow-blue p-4 flex gap-2">
-                <button onclick="exportarBackup()" class="flex-1 bg-white/5 p-3 rounded-xl text-[8px] font-black italic">EXPORTAR JSON</button>
-                <button onclick="document.getElementById('rest-input').click()" class="flex-1 bg-white/5 p-3 rounded-xl text-[8px] font-black italic">IMPORTAR</button>
+                <button onclick="exportarBackup()" class="flex-1 bg-white/5 p-3 rounded-xl text-[8px] font-black">BACKUP</button>
+                <button onclick="document.getElementById('rest-input').click()" class="flex-1 bg-white/5 p-3 rounded-xl text-[8px] font-black">IMPORTAR</button>
                 <input type="file" id="rest-input" class="hidden" onchange="importarBackup(this)">
             </div>
         </div>
     </main>
 
     <div id="pecas-modal" class="hidden fixed inset-0 z-[6000] bg-black p-4 overflow-y-auto">
-        <div class="flex justify-between items-center mb-4">
-            <h3 class="text-cyan-400 font-bold text-[10px] uppercase">Dossiê Técnico</h3>
-            <button onclick="fecharPecas()" class="glass-pill px-6 py-2 text-[10px] font-bold">FECHAR</button>
-        </div>
-        <div id="foto-tecnica-viewport">
-            <div id="foto-tecnica-canvas">
-                <img id="foto-tecnica-img" class="w-full h-full object-contain">
-                <div id="pins-container" class="absolute inset-0"></div>
-            </div>
-        </div>
+        <div class="flex justify-between items-center mb-4"><h3 class="text-cyan-400 font-bold text-[10px] uppercase">Peças e Manutenção</h3><button onclick="fecharPecas()" class="glass-pill px-6 py-2 text-[10px] font-bold">FECHAR</button></div>
+        <div id="foto-tecnica-viewport"><div id="foto-tecnica-canvas"><img id="foto-tecnica-img" class="w-full h-full object-contain"><div id="pins-container" class="absolute inset-0"></div></div></div>
         <div id="lista-pecas-raiox" class="mt-4 space-y-3 pb-24"></div>
-
         <div id="peca-drawer" class="fixed inset-y-0 right-0 w-80 glass-pill m-2 translate-x-[115%] transition-transform duration-300 z-[6100] p-6 flex flex-col gap-3">
-            <h4 id="peca-form-title" class="text-cyan-400 font-black text-xs uppercase mb-2">Dados da Peça</h4>
+            <h4 id="peca-form-title" class="text-cyan-400 font-black text-xs uppercase">Peça</h4>
             <input type="text" id="p-nome" placeholder="Nome">
-            <input type="number" id="p-preco" placeholder="Preço R$">
+            <input type="number" id="p-preco" placeholder="R$">
             <input type="date" id="p-data">
-            <select id="p-estado">
-                <option value="100">Novo (100%)</option>
-                <option value="70">Bom (70%)</option>
-                <option value="40">Meia Vida (40%)</option>
-                <option value="10">Crítico (10%)</option>
-            </select>
-            <button onclick="document.getElementById('f-peca').click()" class="bg-white/10 p-3 rounded-xl text-[10px] font-bold uppercase">Foto da Peça</button>
-            <div class="flex gap-2 mt-auto">
-                <button onclick="fecharDrawer()" class="flex-1 bg-white/5 p-4 rounded-xl font-bold uppercase text-[10px]">Cancelar</button>
-                <button onclick="confirmarPeca()" class="flex-2 bg-cyan-500 text-black p-4 rounded-xl font-black uppercase text-xs">Salvar</button>
-            </div>
+            <select id="p-estado"><option value="100">Novo</option><option value="70">Bom</option><option value="40">Médio</option><option value="10">Crítico</option></select>
+            <button onclick="document.getElementById('f-peca').click()" class="bg-white/10 p-3 rounded-xl text-[10px] font-bold">FOTO DA PEÇA</button>
+            <div class="flex gap-2 mt-auto"><button onclick="fecharDrawer()" class="flex-1 bg-white/5 p-4 rounded-xl text-[10px]">CANCELAR</button><button onclick="confirmarPeca()" class="flex-2 bg-cyan-500 text-black p-4 rounded-xl font-black text-xs">SALVAR</button></div>
         </div>
     </div>
 
@@ -150,10 +139,11 @@
             navigator.geolocation.watchPosition(pos => {
                 userLat = pos.coords.latitude; userLon = pos.coords.longitude;
                 let speed = pos.coords.speed && pos.coords.speed > 0 ? Math.round(pos.coords.speed * 3.6) : 0;
+                
                 document.getElementById('vel-display').innerText = speed;
+                document.getElementById('vel-lock').innerText = speed; // Velocímetro no bloqueio
 
                 if(!startTime) startTime = Date.now();
-
                 if(speed > 0.5) {
                     if(lastCoord) {
                         let d = map.distance([userLat, userLon], [lastCoord.lat, lastCoord.lon]);
@@ -167,129 +157,102 @@
                 lastCoord = {lat:userLat, lon:userLon};
 
                 let emoji = (vIdx !== null) ? veiculos[vIdx].tipo : '🏎️';
-                if(!marker) {
-                    marker = L.marker([userLat,userLon],{icon: L.divIcon({className:'custom-marker', html: emoji})}).addTo(map);
-                } else {
-                    marker.setLatLng([userLat,userLon]);
-                    marker.setIcon(L.divIcon({className:'custom-marker', html: emoji}));
-                }
+                if(!marker) marker = L.marker([userLat,userLon],{icon: L.divIcon({className:'custom-marker', html: emoji})}).addTo(map);
+                else marker.setLatLng([userLat,userLon]);
                 if(firstFix){ map.setView([userLat,userLon], 17); firstFix=false; }
             }, null, {enableHighAccuracy:true});
 
             initRaioX(); renderGaragem(); renderHistorico();
         };
 
-        function toggleLock(){ document.getElementById('blackout').classList.toggle('active'); }
+        // CONTROLES DE BLOQUEIO
+        function ativarBloqueio(){ document.getElementById('blackout').classList.add('active'); }
+        function pedirDesbloqueio(){ if(confirm("Deseja desbloquear o painel?")) document.getElementById('blackout').classList.remove('active'); }
+
         function showTab(id){ document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active')); document.getElementById(id).classList.add('active'); map.invalidateSize(); }
         function recentralizar(){ historyPolyline.setLatLngs([]); map.flyTo([userLat,userLon], 17); }
 
         function finalizarViagem(){
-            let duration = (Date.now() - startTime) / 1000;
-            if(duration < 1) return alert("Trip muito curta");
-            
-            historico.unshift({
-                id: Date.now(),
-                data: new Date().toLocaleString(),
-                km: (totalDist/1000).toFixed(2),
-                coords: route,
-                logs: logViagem
-            });
-            localStorage.setItem('historico', JSON.stringify(historico));
-            location.reload();
+            if(!startTime || (Date.now() - startTime) < 1000) return alert("Viagem muito curta");
+            historico.unshift({ id: Date.now(), data: new Date().toLocaleString(), km: (totalDist/1000).toFixed(2), coords: route, logs: logViagem });
+            localStorage.setItem('historico', JSON.stringify(historico)); location.reload();
         }
 
         function renderHistorico(){
             const l=document.getElementById('lista-historico'); l.innerHTML='';
             historico.forEach((h,i)=>{
-                l.innerHTML += `
-                <div class="glass-pill p-3 flex justify-between items-center mb-1">
-                    <div class="flex-1" onclick="verRota(${i})">
-                        <span class="text-[9px] text-gray-400 font-bold block">${h.data}</span>
-                        <span class="text-cyan-400 font-black text-xs">${h.km} KM</span>
-                    </div>
-                    <div class="flex gap-2">
-                        <button onclick="exportarCSV(${i})" class="text-white bg-white/10 px-2 py-1 rounded text-[8px]">CSV</button>
-                        <button onclick="deletarRota(${i})" class="text-red-500 bg-red-500/10 px-2 py-1 rounded text-[8px]">DEL</button>
-                    </div>
-                </div>`;
+                l.innerHTML += `<div class="glass-pill p-3 flex justify-between items-center mb-1"><div class="flex-1" onclick="verRota(${i})"><span class="text-[9px] text-gray-400 block">${h.data}</span><span class="text-cyan-400 font-black text-xs">${h.km} KM</span></div><div class="flex gap-2"><button onclick="deletarRota(${i})" class="text-red-500 bg-red-500/10 px-3 py-1 rounded-full text-[8px] font-bold">DEL</button></div></div>`;
             });
         }
 
         function verRota(i){
-            const h = historico[i];
-            if(h.coords && h.coords.length > 0){
-                historyPolyline.setLatLngs(h.coords);
-                map.fitBounds(historyPolyline.getBounds(), {padding: [50,50]});
+            if(historico[i].coords.length > 0){
+                historyPolyline.setLatLngs(historico[i].coords);
+                map.fitBounds(historyPolyline.getBounds());
                 showTab('dash');
-            } else { alert("Sem dados de GPS nesta rota."); }
+            }
         }
 
-        function deletarRota(i){ if(confirm("Remover esta rota permanentemente?")){ historico.splice(i,1); localStorage.setItem('historico', JSON.stringify(historico)); renderHistorico(); } }
+        function deletarRota(i){ if(confirm("Apagar esta rota?")){ historico.splice(i,1); localStorage.setItem('historico', JSON.stringify(historico)); renderHistorico(); } }
 
-        // RAIO-X E CORE (MANTIDOS)
+        // RAIO-X
         function initRaioX(){
             const vp=document.getElementById('foto-tecnica-viewport'), cv=document.getElementById('foto-tecnica-canvas');
             vp.addEventListener('pointerdown', e=>{ evH.push(e); isP=true; sx=e.clientX-px; sy=e.clientY-py; if(evH.length>=2) isZooming=true; });
             vp.addEventListener('pointermove', e=>{
                 const i=evH.findIndex(v=>v.pointerId===e.pointerId); evH[i]=e;
-                if(evH.length===2){ 
-                    const c=Math.hypot(evH[0].clientX-evH[1].clientX, evH[0].clientY-evH[1].clientY); 
-                    if(pD>0) sc=Math.min(Math.max(1,sc*(c/pD)),6); pD=c; 
-                } else if(isP && !isZooming){ px=e.clientX-sx; py=e.clientY-sy; }
+                if(evH.length===2){ const c=Math.hypot(evH[0].clientX-evH[1].clientX, evH[0].clientY-evH[1].clientY); if(pD>0) sc=Math.min(Math.max(1,sc*(c/pD)),6); pD=c; } 
+                else if(isP && !isZooming){ px=e.clientX-sx; py=e.clientY-sy; }
                 cv.style.transform=`translate(${px}px,${py}px) scale(${sc})`;
             });
             vp.addEventListener('pointerup', e=>{
                 if(!isZooming && evH.length===1 && Math.abs(e.clientX-sx-px) < 5){ 
-                    const r=vp.getBoundingClientRect(); pX=(e.clientX-r.left-px)/sc; pY=(e.clientY-r.top-py)/sc; 
-                    abrirFormPeca();
+                    const r=vp.getBoundingClientRect(); pX=(e.clientX-r.left-px)/sc; pY=(e.clientY-r.top-py)/sc; abrirFormPeca();
                 }
                 evH=evH.filter(v=>v.pointerId!==e.pointerId); if(evH.length<1){ isZooming=false; pD=-1; isP=false; }
             });
         }
+
         function abrirFormPeca(idx = null){
             pecaEditIdx = idx;
             if(idx !== null){
                 const p = veiculos[vIdx].pecas[idx];
-                document.getElementById('p-nome').value = p.nome;
-                document.getElementById('p-preco').value = p.preco;
-                document.getElementById('p-data').value = p.data;
-                document.getElementById('p-estado').value = p.estado;
-                tempPeca = p.foto;
-                document.getElementById('peca-form-title').innerText = "Editar Peça";
+                document.getElementById('p-nome').value = p.nome; document.getElementById('p-preco').value = p.preco;
+                document.getElementById('p-data').value = p.data; document.getElementById('p-estado').value = p.estado;
+                tempPeca = p.foto; document.getElementById('peca-form-title').innerText = "Editar";
             } else {
-                document.getElementById('p-nome').value = ""; document.getElementById('p-preco').value = ""; document.getElementById('p-data').value = ""; document.getElementById('p-estado').value = "100"; tempPeca = null;
-                document.getElementById('peca-form-title').innerText = "Vincular Peça";
+                document.getElementById('p-nome').value = ""; document.getElementById('p-preco').value = ""; document.getElementById('p-estado').value = "100";
+                tempPeca = null; document.getElementById('peca-form-title').innerText = "Novo";
             }
             document.getElementById('peca-drawer').style.transform='translateX(0)';
         }
+
         function fecharDrawer(){ document.getElementById('peca-drawer').style.transform='translateX(115%)'; }
+
         function confirmarPeca(){
             const n=document.getElementById('p-nome').value; if(!n) return;
-            const dadosPeca = { x: pX, y: pY, nome: n, preco: document.getElementById('p-preco').value, data: document.getElementById('p-data').value, estado: document.getElementById('p-estado').value, foto: tempPeca };
-            if(pecaEditIdx !== null){
-                dadosPeca.x = veiculos[vIdx].pecas[pecaEditIdx].x; dadosPeca.y = veiculos[vIdx].pecas[pecaEditIdx].y;
-                veiculos[vIdx].pecas[pecaEditIdx] = dadosPeca;
-            } else { veiculos[vIdx].pecas.push(dadosPeca); }
+            const d = { x: pX, y: pY, nome: n, preco: document.getElementById('p-preco').value, data: document.getElementById('p-data').value, estado: document.getElementById('p-estado').value, foto: tempPeca };
+            if(pecaEditIdx !== null){ d.x=veiculos[vIdx].pecas[pecaEditIdx].x; d.y=veiculos[vIdx].pecas[pecaEditIdx].y; veiculos[vIdx].pecas[pecaEditIdx]=d; }
+            else { veiculos[vIdx].pecas.push(d); }
             localStorage.setItem('veiculos', JSON.stringify(veiculos)); fecharDrawer(); renderPins(); renderListaPecas();
         }
+
         function renderPins(){ const c=document.getElementById('pins-container'); c.innerHTML=''; veiculos[vIdx].pecas.forEach((p,i)=>{ c.innerHTML+=`<div class="pin-micro" style="left:${p.x}px;top:${p.y}px;">${i+1}</div>`; }); }
-        function renderListaPecas(){ const l=document.getElementById('lista-pecas-raiox'); l.innerHTML=''; veiculos[vIdx].pecas.forEach((p,i)=>{ l.innerHTML+=`<div class="glass-pill p-4 flex gap-4 items-center"><img src="${p.foto || ''}" class="w-12 h-12 rounded-lg bg-white/5 object-cover"><div class="flex-1" onclick="abrirFormPeca(${i})"><p class="text-[10px] font-black uppercase text-cyan-400">${p.nome}</p><p class="text-[8px] text-gray-400">R$ ${p.preco || 0}</p><div class="w-full h-1 bg-white/10 mt-1 rounded-full overflow-hidden"><div class="h-full ${p.estado>40?'bg-green-500':'bg-red-500'}" style="width:${p.estado}%"></div></div></div><button onclick="removeP(${i})" class="text-red-500 font-bold px-2">X</button></div>`; }); }
+        function renderListaPecas(){ const l=document.getElementById('lista-pecas-raiox'); l.innerHTML=''; veiculos[vIdx].pecas.forEach((p,i)=>{ l.innerHTML+=`<div class="glass-pill p-4 flex gap-4 items-center"><img src="${p.foto || ''}" class="w-12 h-12 rounded-lg bg-white/5 object-cover"><div class="flex-1" onclick="abrirFormPeca(${i})"><p class="text-[10px] font-black uppercase text-cyan-400">${p.nome}</p><p class="text-[8px] text-gray-400">R$ ${p.preco || 0}</p></div><button onclick="removeP(${i})" class="text-red-500 font-bold px-2">X</button></div>`; }); }
         function removeP(i){ veiculos[vIdx].pecas.splice(i,1); localStorage.setItem('veiculos', JSON.stringify(veiculos)); renderPins(); renderListaPecas(); }
         function subirFoto(i,t){ const r=new FileReader(); r.onload=e=>{ if(t==='p') tempP=e.target.result; else if(t==='t') tempT=e.target.result; else tempPeca=e.target.result; }; r.readAsDataURL(i.files[0]); }
         function salvarVeiculo(){
-            const n=document.getElementById('g-nome').value, p=document.getElementById('g-placa').value, t=document.getElementById('g-tipo').value;
-            if(!n) return;
-            const dados = { nome: n, placa: p, tipo: t, foto: tempP || (editIdx!==null?veiculos[editIdx].foto:''), fotoTecnica: tempT || (editIdx!==null?veiculos[editIdx].fotoTecnica:''), pecas: editIdx!==null?veiculos[editIdx].pecas:[] };
-            if(editIdx !== null) { veiculos[editIdx]=dados; editIdx=null; } else { veiculos.push(dados); }
+            const n=document.getElementById('g-nome').value; if(!n) return;
+            const d = { nome: n, placa: document.getElementById('g-placa').value, tipo: document.getElementById('g-tipo').value, foto: tempP || (editIdx!==null?veiculos[editIdx].foto:''), fotoTecnica: tempT || (editIdx!==null?veiculos[editIdx].fotoTecnica:''), pecas: editIdx!==null?veiculos[editIdx].pecas:[] };
+            if(editIdx !== null) veiculos[editIdx]=d; else veiculos.push(d);
             localStorage.setItem('veiculos', JSON.stringify(veiculos)); location.reload();
         }
-        function renderGaragem(){ const l=document.getElementById('lista-garagem'); l.innerHTML=''; veiculos.forEach((v,i)=>{ l.innerHTML += `<div class="glass-pill p-4 flex items-center mb-2 glow-red"><img src="${v.foto}" class="w-12 h-12 rounded-full object-cover mr-4 border border-white/20"><div class="flex-1"><p class="text-[10px] font-black uppercase">${v.nome}</p></div><div class="flex gap-2"><button onclick="selV(${i})" class="bg-white text-black px-3 py-1 rounded-full text-[8px] font-black italic">ON</button><button onclick="abrirRaioX(${i})" class="bg-cyan-500 text-black px-3 py-1 rounded-full text-[8px] font-black italic">SCAN</button></div></div>`; }); }
+        function renderGaragem(){ const l=document.getElementById('lista-garagem'); l.innerHTML=''; veiculos.forEach((v,i)=>{ l.innerHTML += `<div class="glass-pill p-4 flex items-center mb-2 glow-red"><img src="${v.foto}" class="w-12 h-12 rounded-full object-cover mr-4"><div class="flex-1"><p class="text-[10px] font-black uppercase">${v.nome}</p></div><div class="flex gap-2"><button onclick="selV(${i})" class="bg-white text-black px-3 py-1 rounded-full text-[8px] font-black italic">ON</button><button onclick="abrirRaioX(${i})" class="bg-cyan-500 text-black px-3 py-1 rounded-full text-[8px] font-black italic">SCAN</button></div></div>`; }); }
         function selV(i){ vIdx=i; document.getElementById('v-txt').innerText=veiculos[i].nome; showTab('dash'); }
         function abrirRaioX(i){ vIdx=i; document.getElementById('pecas-modal').style.display='block'; document.getElementById('foto-tecnica-img').src=veiculos[i].fotoTecnica; px=0; py=0; sc=1; document.getElementById('foto-tecnica-canvas').style.transform='scale(1)'; renderPins(); renderListaPecas(); }
         function fecharPecas(){ document.getElementById('pecas-modal').style.display='none'; }
         function exportarBackup(){ const b = new Blob([JSON.stringify({veiculos, historico})], {type:'application/json'}); const a = document.createElement('a'); a.href=URL.createObjectURL(b); a.download='astra_db.json'; a.click(); }
         function importarBackup(input){ const f = new FileReader(); f.onload = e => { const d = JSON.parse(e.target.result); veiculos = d.veiculos; historico = d.historico; localStorage.setItem('veiculos', JSON.stringify(veiculos)); localStorage.setItem('historico', JSON.stringify(historico)); location.reload(); }; f.readAsText(input.files[0]); }
-        function exportarCSV(i){ let csv = "Hora,Velocidade\n"; historico[i].logs.forEach(l => csv += `${l.h},${l.v}\n`); const b = new Blob([csv], {type:'text/csv'}); const a = document.createElement('a'); a.href=URL.createObjectURL(b); a.download='telemetria.csv'; a.click(); }
     </script>
 </body>
 </html>
