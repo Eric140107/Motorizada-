@@ -3,89 +3,92 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AutoMonitor - GPS & Garagem</title>
+    <title>AutoMonitor Pro - Custom Markers</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
-        #map { height: 250px; border-radius: 15px; margin: 10px 0; }
+        #map { height: 400px; border-radius: 20px; margin: 15px 0; z-index: 1; }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
-        #preview-img { display: none; max-height: 300px; width: 100%; object-fit: cover; border-radius: 12px; margin-bottom: 10px; border: 2px solid #eab308; }
+        #preview-img { display: none; max-height: 200px; width: 100%; object-fit: cover; border-radius: 12px; margin-bottom: 10px; border: 2px solid #eab308; }
+        
+        /* Estilo do Marcador Customizado */
+        .custom-marker {
+            display: flex; align-items: center; justify-content: center;
+            font-size: 24px; background: rgba(59, 130, 246, 0.2);
+            border: 2px solid #3b82f6; border-radius: 50%;
+            width: 40px !important; height: 40px !important;
+            box-shadow: 0 0 15px #3b82f6; animation: pulse 2s infinite;
+        }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
     </style>
 </head>
-<body class="bg-gray-900 text-white font-sans">
+<body class="bg-gray-900 text-white font-sans overflow-x-hidden">
 
-    <header class="p-4 bg-gray-800 shadow-xl flex justify-between items-center">
+    <header class="p-4 bg-gray-800/80 backdrop-blur-md sticky top-0 z-50 flex justify-between items-center border-b border-gray-700">
         <div>
-            <h1 class="text-xl font-bold text-yellow-500">AutoMonitor</h1>
-            <p id="data-sessao" class="text-xs text-gray-400"></p>
+            <h1 class="text-xl font-black italic text-yellow-500 tracking-tighter">AUTO MONITOR</h1>
+            <p id="data-sessao" class="text-[10px] uppercase tracking-widest text-gray-400"></p>
         </div>
-        <div class="text-right">
-            <span id="status-gps" class="text-red-500 text-xs">● GPS Off</span>
-        </div>
+        <div id="status-gps" class="bg-gray-700 px-3 py-1 rounded-full text-red-500 text-[10px] font-bold">GPS OFF</div>
     </header>
 
-    <nav class="flex border-b border-gray-700">
-        <button onclick="showTab('dash')" class="flex-1 p-3 bg-gray-800 hover:bg-gray-700 border-r border-gray-700">Dashboard</button>
-        <button onclick="showTab('garagem')" class="flex-1 p-3 bg-gray-800 hover:bg-gray-700">Minha Garagem</button>
-    </nav>
-
     <main id="dash" class="tab-content active p-4">
-        <div class="flex flex-col items-center justify-center py-6 bg-gray-800 rounded-3xl shadow-inner border border-gray-700">
-            <span class="text-6xl font-black text-yellow-400" id="vel-display">0</span>
-            <span class="text-xl text-gray-400">km/h</span>
+        <div class="flex items-center justify-between mb-4">
+            <div class="bg-gray-800 p-4 rounded-2xl border border-gray-700 w-1/2 mr-2 text-center">
+                <span class="text-5xl font-black text-yellow-400" id="vel-display">0</span>
+                <span class="text-xs text-gray-500 block uppercase font-bold">KM/H</span>
+            </div>
+            <div class="bg-gray-800 p-4 rounded-2xl border border-gray-700 w-1/2 ml-2 text-right overflow-hidden">
+                <p id="veiculo-atual-nome" class="text-sm font-bold text-yellow-500 truncate">S/ Veículo</p>
+                <p id="veiculo-atual-tipo" class="text-[10px] text-gray-500 uppercase font-black">Selecione um...</p>
+            </div>
         </div>
+
         <div id="map"></div>
-        <div class="grid grid-cols-2 gap-4 mt-2 text-center">
-            <div class="bg-gray-800 p-3 rounded-xl border border-gray-700">
-                <p class="text-xs text-gray-400">Veículo</p>
-                <p id="veiculo-atual" class="font-bold text-yellow-500">Nenhum</p>
-            </div>
-            <div class="bg-gray-800 p-3 rounded-xl border border-gray-700">
-                <p class="text-xs text-gray-400">Início</p>
-                <p id="hora-inicio" class="font-bold">-</p>
-            </div>
-        </div>
+        <button onclick="recentralizar()" class="w-full bg-blue-600/20 border border-blue-500/50 p-3 rounded-xl text-xs font-bold text-blue-400 uppercase tracking-widest">
+            📍 Centralizar Navegação
+        </button>
     </main>
 
     <main id="garagem" class="tab-content p-4">
-        <h2 class="text-lg font-bold mb-4">Adicionar Veículo</h2>
-        
-        <div class="bg-gray-800 p-4 rounded-xl space-y-3 border border-gray-700">
-            <img id="preview-img" src="#" alt="Preview da foto">
+        <div class="bg-gray-800 p-5 rounded-3xl border border-gray-700 space-y-4">
+            <h2 class="font-black text-yellow-500 italic uppercase underline decoration-2">Cadastrar Veículo</h2>
+            <img id="preview-img" src="#" alt="Preview">
             
-            <input type="text" id="nome" placeholder="Nome/Apelido" class="w-full p-3 rounded bg-gray-700 border-none focus:ring-2 ring-yellow-500">
-            <div class="grid grid-cols-2 gap-2">
-                <input type="text" id="marca" placeholder="Marca" class="p-3 rounded bg-gray-700 border-none">
-                <input type="text" id="modelo" placeholder="Modelo" class="p-3 rounded bg-gray-700 border-none">
+            <input type="text" id="nome" placeholder="Apelido (Ex: Minha Hornet)" class="w-full p-4 rounded-xl bg-gray-900 border border-gray-700 text-sm focus:border-yellow-500 outline-none">
+            
+            <div class="grid grid-cols-3 gap-2">
+                <button onclick="setTipo('Bicicleta', '🚲')" class="tipo-btn p-3 bg-gray-900 border border-gray-700 rounded-xl text-xl hover:border-yellow-500">🚲</button>
+                <button onclick="setTipo('Moto', '🏍️')" class="tipo-btn p-3 bg-gray-900 border border-gray-700 rounded-xl text-xl hover:border-yellow-500">🏍️</button>
+                <button onclick="setTipo('Carro', '🚗')" class="tipo-btn p-3 bg-gray-900 border border-gray-700 rounded-xl text-xl hover:border-yellow-500">🚗</button>
             </div>
-            
-            <label class="block">
-                <span class="text-sm text-gray-400">Escolha a foto da motorizada:</span>
-                <input type="file" id="foto" accept="image/*" onchange="previewFoto(this)" class="block w-full text-sm text-gray-400 mt-1
-                    file:mr-4 file:py-2 file:px-4
-                    file:rounded-full file:border-0
-                    file:text-sm file:font-semibold
-                    file:bg-yellow-500 file:text-black
-                    hover:file:bg-yellow-400">
-            </label>
+            <p id="tipo-selecionado" class="text-center text-[10px] text-gray-500 font-bold uppercase tracking-widest">Selecione o tipo acima</p>
 
-            <button onclick="salvarVeiculo()" class="w-full bg-yellow-600 hover:bg-yellow-500 p-3 rounded-xl font-bold uppercase transition">Salvar Veículo</button>
+            <input type="file" id="foto" accept="image/*" onchange="previewFoto(this)" class="hidden">
+            <button onclick="document.getElementById('foto').click()" class="w-full bg-gray-700 p-3 rounded-xl text-xs font-bold uppercase">📸 Tirar/Subir Foto</button>
+
+            <button onclick="salvarVeiculo()" class="w-full bg-yellow-500 text-black p-4 rounded-2xl font-black uppercase shadow-lg shadow-yellow-500/20 transition-transform active:scale-95">Salvar na Garagem</button>
         </div>
 
-        <h2 class="text-lg font-bold mt-8 mb-4">Meus Veículos</h2>
-        <div id="lista-veiculos" class="space-y-4 pb-20">
-            </div>
+        <div id="lista-veiculos" class="mt-8 space-y-4 pb-32"></div>
     </main>
+
+    <nav class="fixed bottom-0 left-0 w-full bg-gray-800/95 backdrop-blur-md border-t border-gray-700 flex p-3 z-[100] justify-around">
+        <button onclick="showTab('dash')" class="text-[10px] font-black uppercase text-gray-400 hover:text-yellow-500">Dashboard</button>
+        <button onclick="showTab('garagem')" class="text-[10px] font-black uppercase text-gray-400 hover:text-yellow-500">Minha Garagem</button>
+    </nav>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        let map, marker, veiculos = JSON.parse(localStorage.getItem('veiculos') || '[]');
+        let map, marker, userLat, userLon;
+        let veiculos = JSON.parse(localStorage.getItem('veiculos') || '[]');
+        let autoCenter = true;
+        let tipoEscolhido = { nome: '', icone: '📍' };
 
         window.onload = () => {
             const agora = new Date();
-            document.getElementById('data-sessao').innerText = agora.toLocaleDateString();
-            document.getElementById('hora-inicio').innerText = agora.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            document.getElementById('data-sessao').innerText = agora.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
             initMap();
             startTracking();
             renderVeiculos();
@@ -94,68 +97,102 @@
         function showTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
             document.getElementById(tabId).classList.add('active');
+            if(tabId === 'dash') setTimeout(() => map.invalidateSize(), 200);
         }
 
-        // FUNÇÃO DE PREVIEW DA FOTO
+        // --- MAPA E MARCADOR ---
+        function initMap() {
+            map = L.map('map', { zoomControl: false }).setView([0, 0], 2);
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
+            
+            // Marcador inicial
+            updateMarkerIcon('📍');
+            map.on('dragstart', () => { autoCenter = false; });
+        }
+
+        function updateMarkerIcon(icone) {
+            if(marker) map.removeLayer(marker);
+            const customIcon = L.divIcon({
+                className: 'custom-marker',
+                html: icone,
+                iconSize: [40, 40]
+            });
+            marker = L.marker([userLat || 0, userLon || 0], { icon: customIcon }).addTo(map);
+        }
+
+        function recentralizar() {
+            autoCenter = true;
+            if(userLat) map.flyTo([userLat, userLon], 18);
+        }
+
+        function startTracking() {
+            if ("geolocation" in navigator) {
+                navigator.geolocation.watchPosition(pos => {
+                    userLat = pos.coords.latitude;
+                    userLon = pos.coords.longitude;
+                    const speed = pos.coords.speed ? (pos.coords.speed * 3.6).toFixed(0) : 0;
+                    document.getElementById('vel-display').innerText = speed;
+                    document.getElementById('status-gps').innerText = "GPS ATIVO";
+                    document.getElementById('status-gps').className = "bg-green-500/20 text-green-500 px-3 py-1 rounded-full text-[10px] font-bold";
+                    
+                    marker.setLatLng([userLat, userLon]);
+                    if(autoCenter) map.setView([userLat, userLon], 18);
+                }, null, { enableHighAccuracy: true });
+            }
+        }
+
+        // --- GARAGEM E TIPOS ---
+        function setTipo(nome, icone) {
+            tipoEscolhido = { nome, icone };
+            document.querySelectorAll('.tipo-btn').forEach(b => b.classList.remove('border-yellow-500', 'bg-gray-800'));
+            event.currentTarget.classList.add('border-yellow-500', 'bg-gray-800');
+            document.getElementById('tipo-selecionado').innerText = `Selecionado: ${nome}`;
+        }
+
         function previewFoto(input) {
             const preview = document.getElementById('preview-img');
             if (input.files && input.files[0]) {
                 const reader = new FileReader();
-                reader.onload = function(e) {
-                    preview.src = e.target.result;
-                    preview.style.display = 'block';
-                }
+                reader.onload = (e) => { preview.src = e.target.result; preview.style.display = 'block'; }
                 reader.readAsDataURL(input.files[0]);
             }
         }
 
         function salvarVeiculo() {
             const nome = document.getElementById('nome').value;
-            const marca = document.getElementById('marca').value;
-            const modelo = document.getElementById('modelo').value;
-            const preview = document.getElementById('preview-img');
-            
-            if (!nome) return alert("Dê um nome ao veículo!");
+            if (!nome || !tipoEscolhido.nome) return alert("Preencha o nome e escolha o tipo (Bicicleta, Moto ou Carro)!");
 
-            const novoVeiculo = {
+            veiculos.push({
                 id: Date.now(),
-                nome: nome,
-                marca: marca,
-                modelo: modelo,
-                foto: preview.src !== "#" ? preview.src : 'https://via.placeholder.com/150'
-            };
+                nome,
+                tipo: tipoEscolhido.nome,
+                icone: tipoEscolhido.icone,
+                foto: document.getElementById('preview-img').src !== "#" ? document.getElementById('preview-img').src : 'https://via.placeholder.com/300x150/222/555?text=Sem+Foto'
+            });
 
-            veiculos.push(novoVeiculo);
             localStorage.setItem('veiculos', JSON.stringify(veiculos));
             renderVeiculos();
-            
-            // Limpar formulário
+            // Reset
             document.getElementById('nome').value = '';
-            document.getElementById('marca').value = '';
-            document.getElementById('modelo').value = '';
-            document.getElementById('foto').value = '';
-            preview.style.display = 'none';
-            preview.src = '#';
-            
-            alert("Veículo guardado na garagem!");
+            document.getElementById('preview-img').style.display = 'none';
+            tipoEscolhido = { nome: '', icone: '📍' };
         }
 
         function renderVeiculos() {
             const container = document.getElementById('lista-veiculos');
-            container.innerHTML = veiculos.length === 0 ? '<p class="text-gray-500">Garagem vazia.</p>' : '';
-            
-            veiculos.forEach((v, index) => {
+            container.innerHTML = '';
+            veiculos.forEach((v, i) => {
                 container.innerHTML += `
-                    <div class="bg-gray-800 rounded-2xl overflow-hidden border border-gray-700 shadow-lg">
-                        <img src="${v.foto}" class="w-full h-40 object-cover">
+                    <div class="bg-gray-800 rounded-3xl overflow-hidden border border-gray-700">
+                        <img src="${v.foto}" class="w-full h-40 object-cover opacity-80">
                         <div class="p-4 flex justify-between items-center">
                             <div>
-                                <h3 class="font-bold text-yellow-500">${v.nome}</h3>
-                                <p class="text-xs text-gray-400">${v.marca} ${v.modelo}</p>
+                                <h3 class="font-black text-yellow-500 uppercase tracking-tighter">${v.icone} ${v.nome}</h3>
+                                <p class="text-[10px] text-gray-500 font-bold uppercase">${v.tipo}</p>
                             </div>
                             <div class="flex gap-2">
-                                <button onclick="selecionarVeiculo('${v.nome}')" class="bg-green-600 p-2 rounded-lg text-xs font-bold">USAR</button>
-                                <button onclick="excluirVeiculo(${index})" class="bg-red-600 p-2 rounded-lg text-xs">Apagar</button>
+                                <button onclick="selecionar(${i})" class="bg-yellow-500 text-black px-4 py-2 rounded-xl text-[10px] font-black uppercase">Usar</button>
+                                <button onclick="apagar(${i})" class="bg-red-900/20 text-red-500 p-2 rounded-xl">✕</button>
                             </div>
                         </div>
                     </div>
@@ -163,39 +200,20 @@
             });
         }
 
-        function excluirVeiculo(index) {
-            if(confirm("Remover veículo?")) {
-                veiculos.splice(index, 1);
+        function selecionar(idx) {
+            const v = veiculos[idx];
+            document.getElementById('veiculo-atual-nome').innerText = v.nome;
+            document.getElementById('veiculo-atual-tipo').innerText = v.tipo;
+            updateMarkerIcon(v.icone); // TROCA O MARCADOR NO MAPA!
+            showTab('dash');
+            recentralizar();
+        }
+
+        function apagar(i) {
+            if(confirm("Remover da garagem?")) {
+                veiculos.splice(i, 1);
                 localStorage.setItem('veiculos', JSON.stringify(veiculos));
                 renderVeiculos();
-            }
-        }
-
-        function selecionarVeiculo(nome) {
-            document.getElementById('veiculo-atual').innerText = nome;
-            showTab('dash');
-        }
-
-        // GPS E MAPA (Simples)
-        function initMap() {
-            map = L.map('map').setView([0, 0], 2);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-            marker = L.marker([0, 0]).addTo(map);
-        }
-
-        function startTracking() {
-            if ("geolocation" in navigator) {
-                navigator.geolocation.watchPosition(pos => {
-                    const lat = pos.coords.latitude;
-                    const lon = pos.coords.longitude;
-                    const speed = pos.coords.speed ? (pos.coords.speed * 3.6).toFixed(0) : 0;
-                    document.getElementById('vel-display').innerText = speed;
-                    document.getElementById('status-gps').innerText = "● GPS Ativo";
-                    document.getElementById('status-gps').className = "text-green-500 text-xs";
-                    const p = [lat, lon];
-                    map.setView(p, 16);
-                    marker.setLatLng(p);
-                }, null, { enableHighAccuracy: true });
             }
         }
     </script>
