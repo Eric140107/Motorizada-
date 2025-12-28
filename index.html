@@ -6,9 +6,9 @@
     <meta name="theme-color" content="#000000">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Astra Monitor - Pro Edition</title>
+    <title>Motorista Pro</title>
     
-    <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIkFzdHJhIE1vbml0b3IiLAogICJzaG9ydF9uYW1lIjogIkFzdHJhIiwKICAic3RhcnRfdXJsIjogIi4iLAogICJkaXNwbGF5IjogInN0YW5kYWxvbmUiLAogICJiYWNrZ3JvdW5kX2NvbG9yIjogIiMwMDAwMDAiLAogICJ0aGVtZV9jb2xvciI6ICIjZmYwMDMzIiwKICAiaWNvbnMiOiBbCiAgICB7CiAgICAgICJzcmMiOiAiaHR0cHM6Ly9jZG4taWNvbnMtcG5nLmZsYXRpY29uLmNvbS81MTIvODg1Lzg4NTE4NS5wbmciLAogICAgICAic2l6ZXMiOiAiNTEyeDUxMiIsCiAgICAgICJ0eXBlIjogImltYWdlL3BuZyIKICAgIH0KICBdCn0=">
+    <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIk1vdG9yaXN0YSBQcm8iLAogICJzaG9ydF9uYW1lIjogIk1vdG9yaXN0YSIsCiAgInN0YXJ0X3VybCI6ICIuIiwKICAiZGlzcGxheSI6ICJzdGFuZGFsb25lIiwKICAiYmFja2dyb3VuZF9jb2xvciI6ICIjMDAwMDAwIiwKICAidGhlbWVfY29sb3IiOiAiI2ZmMDAzMyIsCiAgImljb25zIjogWwogICAgewogICAgICAic3JjIjogIm1vdG9yaXN0YS5wbmciLAogICAgICAic2l6ZXMiOiAiNTEyeDUxMiIsCiAgICAgICJ0eXBlIjogImltYWdlL3BuZyIKICAgIH0KICBdCn0=">
 
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -77,13 +77,16 @@
     <main id="garagem" class="tab-content">
         <div class="space-y-6 pb-20">
             <button id="pwa-install" class="hidden w-full glass-pill glow-blue p-4 text-[10px] font-black uppercase text-cyan-400 mb-4">
-                📲 Instalar Painel na Tela Inicial
+                📲 Instalar Motorista Pro
             </button>
 
             <div class="glass-pill glow-red p-6">
+                <div class="flex justify-center mb-4">
+                    <img src="motorista.png" alt="Logo" class="w-12 h-12 object-contain">
+                </div>
                 <h2 id="garage-form-title" class="text-xs font-black uppercase text-red-500 mb-4 text-center">Gestão de Frota</h2>
                 <div class="flex flex-col gap-2">
-                    <input type="text" id="g-nome" placeholder="Modelo">
+                    <input type="text" id="g-nome" placeholder="Nome/Modelo">
                     <div class="grid grid-cols-2 gap-2">
                         <input type="text" id="g-placa" placeholder="Placa">
                         <select id="g-tipo"><option value="🏎️">Carro</option><option value="🏍️">Moto</option></select>
@@ -92,7 +95,7 @@
                         <button onclick="document.getElementById('f-p').click()" class="bg-white/5 p-3 rounded-xl text-[9px] font-bold uppercase italic">Foto Perfil</button>
                         <button onclick="document.getElementById('f-t').click()" class="bg-white/5 p-3 rounded-xl text-[9px] font-bold uppercase italic">Foto Raio-X</button>
                     </div>
-                    <button id="btn-salvar-v" onclick="salvarVeiculo()" class="w-full bg-red-600 p-4 rounded-xl font-black text-xs uppercase">Gravar Dados</button>
+                    <button id="btn-salvar-v" onclick="salvarVeiculo()" class="w-full bg-red-600 p-4 rounded-xl font-black text-xs uppercase">Gravar Veículo</button>
                     <button id="btn-cancel-edit" onclick="cancelarEdicaoV()" class="hidden w-full bg-white/5 p-2 rounded-xl text-[9px] font-bold">CANCELAR EDIÇÃO</button>
                 </div>
             </div>
@@ -115,12 +118,12 @@
         <div id="lista-pecas-raiox" class="mt-4 space-y-3 pb-24"></div>
         
         <div id="peca-drawer" class="fixed inset-y-0 right-0 w-80 glass-pill m-2 translate-x-[115%] transition-transform duration-300 z-[6100] p-6 flex flex-col gap-3">
-            <h4 id="peca-form-title" class="text-cyan-400 font-black text-xs uppercase">Detalhes</h4>
-            <input type="text" id="p-nome" placeholder="Peça">
-            <input type="number" id="p-preco" placeholder="Valor R$">
+            <h4 id="peca-form-title" class="text-cyan-400 font-black text-xs uppercase">Peça</h4>
+            <input type="text" id="p-nome" placeholder="Nome">
+            <input type="number" id="p-preco" placeholder="Preço R$">
             <input type="date" id="p-data">
-            <select id="p-estado"><option value="100">Novo</option><option value="70">Bom</option><option value="40">Meia-Vida</option><option value="10">Crítico</option></select>
-            <button onclick="document.getElementById('f-peca').click()" class="bg-white/10 p-3 rounded-xl text-[10px] font-bold">TROCAR FOTO</button>
+            <select id="p-estado"><option value="100">Novo (100%)</option><option value="70">Bom (70%)</option><option value="40">Médio (40%)</option><option value="10">Crítico (10%)</option></select>
+            <button onclick="document.getElementById('f-peca').click()" class="bg-white/10 p-3 rounded-xl text-[10px] font-bold uppercase">Foto da Peça</button>
             <div class="flex gap-2 mt-auto"><button onclick="fecharDrawer()" class="flex-1 bg-white/5 p-4 rounded-xl text-[10px]">CANCELAR</button><button onclick="confirmarPeca()" class="flex-2 bg-cyan-500 text-black p-4 rounded-xl font-black text-xs">SALVAR</button></div>
         </div>
     </div>
@@ -142,20 +145,9 @@
         let tempP, tempT, tempPeca, vIdx = null, editIdx = null, pecaEditIdx = null, route = [], totalDist=0, lastCoord=null, logViagem = [], startTime=null;
         let sc=1, px=0, py=0, evH=[], pD=-1, sx, sy, isP=false, pX, pY, isZooming=false, firstFix=true, deferredPrompt;
 
-        // LÓGICA DE INSTALAÇÃO (PWA)
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault(); deferredPrompt = e;
-            document.getElementById('pwa-install').classList.remove('hidden');
-        });
-
-        document.getElementById('pwa-install').addEventListener('click', async () => {
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                const { outcome } = await deferredPrompt.userChoice;
-                if (outcome === 'accepted') document.getElementById('pwa-install').classList.add('hidden');
-                deferredPrompt = null;
-            }
-        });
+        // PWA
+        window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredPrompt = e; document.getElementById('pwa-install').classList.remove('hidden'); });
+        document.getElementById('pwa-install').addEventListener('click', async () => { if (deferredPrompt) { deferredPrompt.prompt(); const { outcome } = await deferredPrompt.userChoice; if (outcome === 'accepted') document.getElementById('pwa-install').classList.add('hidden'); deferredPrompt = null; } });
 
         window.onload = () => {
             map = L.map('map',{zoomControl:false, attributionControl:false}).setView([0,0],2);
@@ -168,15 +160,10 @@
                 let speed = pos.coords.speed && pos.coords.speed > 0 ? Math.round(pos.coords.speed * 3.6) : 0;
                 document.getElementById('vel-display').innerText = speed;
                 document.getElementById('vel-lock').innerText = speed;
-
                 if(!startTime) startTime = Date.now();
                 if(speed > 0.5) {
-                    if(lastCoord) {
-                        let d = map.distance([userLat, userLon], [lastCoord.lat, lastCoord.lon]);
-                        if(d < 60) totalDist += d;
-                    }
-                    route.push([userLat, userLon]);
-                    polyline.setLatLngs(route);
+                    if(lastCoord) { let d = map.distance([userLat, userLon], [lastCoord.lat, lastCoord.lon]); if(d < 60) totalDist += d; }
+                    route.push([userLat, userLon]); polyline.setLatLngs(route);
                     logViagem.push({h: new Date().toLocaleTimeString(), v: speed});
                     document.getElementById('dist-txt').innerText = (totalDist/1000).toFixed(2);
                 }
@@ -186,50 +173,43 @@
                 else { marker.setLatLng([userLat,userLon]); marker.setIcon(L.divIcon({className:'custom-marker', html: emoji})); }
                 if(firstFix){ map.setView([userLat,userLon], 17); firstFix=false; }
             }, null, {enableHighAccuracy:true});
-
             initRaioX(); renderGaragem(); renderHistorico();
         };
 
-        // BLOQUEIO
         function ativarBloqueio(){ document.getElementById('blackout').classList.add('active'); }
-        function pedirDesbloqueio(){ if(confirm("Confirmar desbloqueio?")) document.getElementById('blackout').classList.remove('active'); }
+        function pedirDesbloqueio(){ if(confirm("Deseja desbloquear o painel?")) document.getElementById('blackout').classList.remove('active'); }
         function showTab(id){ document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active')); document.getElementById(id).classList.add('active'); map.invalidateSize(); }
         function recentralizar(){ historyPolyline.setLatLngs([]); map.flyTo([userLat,userLon], 17); }
 
-        // GESTÃO VEÍCULOS
         function salvarVeiculo(){
             const n=document.getElementById('g-nome').value; if(!n) return;
             const dadosV = { nome: n, placa: document.getElementById('g-placa').value, tipo: document.getElementById('g-tipo').value, foto: tempP || (editIdx!==null?veiculos[editIdx].foto:''), fotoTecnica: tempT || (editIdx!==null?veiculos[editIdx].fotoTecnica:''), pecas: editIdx!==null?veiculos[editIdx].pecas:[] };
             if(editIdx !== null) { veiculos[editIdx]=dadosV; editIdx=null; } else { veiculos.push(dadosV); }
             localStorage.setItem('veiculos', JSON.stringify(veiculos)); cancelarEdicaoV(); renderGaragem();
         }
-        function editarVeiculo(i){ editIdx=i; const v=veiculos[i]; document.getElementById('g-nome').value=v.nome; document.getElementById('g-placa').value=v.placa; document.getElementById('g-tipo').value=v.tipo; document.getElementById('garage-form-title').innerText="Alterar "+v.nome; document.getElementById('btn-cancel-edit').classList.remove('hidden'); document.getElementById('btn-salvar-v').innerText="Confirmar Mudança"; document.querySelector('#garagem').scrollTop=0; }
-        function removerVeiculo(i){ if(confirm("Remover este veículo?")){ veiculos.splice(i,1); if(vIdx===i) vIdx=null; localStorage.setItem('veiculos', JSON.stringify(veiculos)); renderGaragem(); } }
-        function cancelarEdicaoV(){ editIdx=null; document.getElementById('g-nome').value=''; document.getElementById('g-placa').value=''; document.getElementById('garage-form-title').innerText="Gestão de Frota"; document.getElementById('btn-cancel-edit').classList.add('hidden'); document.getElementById('btn-salvar-v').innerText="Gravar Dados"; }
+        function editarVeiculo(i){ editIdx=i; const v=veiculos[i]; document.getElementById('g-nome').value=v.nome; document.getElementById('g-placa').value=v.placa; document.getElementById('g-tipo').value=v.tipo; document.getElementById('garage-form-title').innerText="Editando: "+v.nome; document.getElementById('btn-cancel-edit').classList.remove('hidden'); document.getElementById('btn-salvar-v').innerText="Atualizar Dados"; document.querySelector('#garagem').scrollTop=0; }
+        function removerVeiculo(i){ if(confirm("Apagar veículo?")){ veiculos.splice(i,1); if(vIdx===i) vIdx=null; localStorage.setItem('veiculos', JSON.stringify(veiculos)); renderGaragem(); } }
+        function cancelarEdicaoV(){ editIdx=null; document.getElementById('g-nome').value=''; document.getElementById('g-placa').value=''; document.getElementById('garage-form-title').innerText="Gestão de Frota"; document.getElementById('btn-cancel-edit').classList.add('hidden'); document.getElementById('btn-salvar-v').innerText="Gravar Veículo"; }
         function renderGaragem(){
             const l=document.getElementById('lista-garagem'); l.innerHTML='';
             veiculos.forEach((v,i)=>{
-                l.innerHTML += `<div class="glass-pill p-4 mb-2 glow-red"><div class="flex items-center mb-3"><img src="${v.foto}" class="w-12 h-12 rounded-full object-cover mr-4 border border-white/10"><div class="flex-1"><p class="text-[10px] font-black uppercase">${v.nome}</p><p class="text-[8px] text-gray-500">${v.placa}</p></div><button onclick="selV(${i})" class="bg-white text-black px-4 py-1 rounded-full text-[9px] font-black italic">ATUAL</button></div><div class="flex gap-2 border-t border-white/5 pt-2"><button onclick="abrirRaioX(${i})" class="flex-1 text-cyan-400 text-[8px] font-bold">SCANNER</button><button onclick="editarVeiculo(${i})" class="flex-1 text-yellow-500 text-[8px] font-bold">EDITAR</button><button onclick="removerVeiculo(${i})" class="flex-1 text-red-500 text-[8px] font-bold">REMOVER</button></div></div>`;
+                l.innerHTML += `<div class="glass-pill p-4 mb-2 glow-red"><div class="flex items-center mb-3"><img src="${v.foto}" class="w-12 h-12 rounded-full object-cover mr-4 border border-white/10"><div class="flex-1"><p class="text-[10px] font-black uppercase">${v.nome}</p><p class="text-[8px] text-gray-500">${v.placa}</p></div><button onclick="selV(${i})" class="bg-white text-black px-4 py-1 rounded-full text-[9px] font-black italic">ATIVAR</button></div><div class="flex gap-2 border-t border-white/5 pt-2"><button onclick="abrirRaioX(${i})" class="flex-1 text-cyan-400 text-[8px] font-bold">SCANNER</button><button onclick="editarVeiculo(${i})" class="flex-1 text-yellow-500 text-[8px] font-bold">EDITAR</button><button onclick="removerVeiculo(${i})" class="flex-1 text-red-500 text-[8px] font-bold">REMOVER</button></div></div>`;
             });
         }
         function selV(i){ vIdx=i; document.getElementById('v-txt').innerText=veiculos[i].nome; showTab('dash'); }
 
-        // TRIP
         function finalizarViagem(){
-            if(!startTime || (Date.now() - startTime) < 1000) return alert("Trip curta");
+            if(!startTime || (Date.now() - startTime) < 1000) return alert("Viagem curta");
             historico.unshift({ id: Date.now(), data: new Date().toLocaleString(), km: (totalDist/1000).toFixed(2), coords: route, logs: logViagem });
             localStorage.setItem('historico', JSON.stringify(historico)); location.reload();
         }
         function renderHistorico(){
             const l=document.getElementById('lista-historico'); l.innerHTML='';
-            historico.forEach((h,i)=>{
-                l.innerHTML += `<div class="glass-pill p-3 flex justify-between items-center mb-1"><div class="flex-1" onclick="verRota(${i})"><span class="text-[9px] text-gray-400 block">${h.data}</span><span class="text-cyan-400 font-black text-xs">${h.km} KM</span></div><button onclick="deletarRota(${i})" class="text-red-500 px-3 text-[8px] font-bold">DEL</button></div>`;
-            });
+            historico.forEach((h,i)=>{ l.innerHTML += `<div class="glass-pill p-3 flex justify-between items-center mb-1"><div class="flex-1" onclick="verRota(${i})"><span class="text-[9px] text-gray-400 block">${h.data}</span><span class="text-cyan-400 font-black text-xs">${h.km} KM</span></div><button onclick="deletarRota(${i})" class="text-red-500 px-3 text-[8px] font-bold uppercase">Deletar</button></div>`; });
         }
         function verRota(i){ if(historico[i].coords.length>0){ historyPolyline.setLatLngs(historico[i].coords); map.fitBounds(historyPolyline.getBounds()); showTab('dash'); } }
-        function deletarRota(i){ if(confirm("Apagar?")){ historico.splice(i,1); localStorage.setItem('historico', JSON.stringify(historico)); renderHistorico(); } }
+        function deletarRota(i){ if(confirm("Apagar histórico?")){ historico.splice(i,1); localStorage.setItem('historico', JSON.stringify(historico)); renderHistorico(); } }
 
-        // RAIO-X
         function initRaioX(){
             const vp=document.getElementById('foto-tecnica-viewport'), cv=document.getElementById('foto-tecnica-canvas');
             vp.addEventListener('pointerdown', e=>{ evH.push(e); isP=true; sx=e.clientX-px; sy=e.clientY-py; if(evH.length>=2) isZooming=true; });
@@ -253,7 +233,7 @@
                 tempPeca = p.foto; document.getElementById('peca-form-title').innerText = "Editar Peça";
             } else {
                 document.getElementById('p-nome').value = ""; document.getElementById('p-preco').value = ""; document.getElementById('p-estado').value = "100";
-                tempPeca = null; document.getElementById('peca-form-title').innerText = "Nova Peça";
+                tempPeca = null; document.getElementById('peca-form-title').innerText = "Vincular Peça";
             }
             document.getElementById('peca-drawer').style.transform='translateX(0)';
         }
@@ -271,7 +251,7 @@
         function subirFoto(i,t){ const r=new FileReader(); r.onload=e=>{ if(t==='p') tempP=e.target.result; else if(t==='t') tempT=e.target.result; else tempPeca=e.target.result; }; r.readAsDataURL(i.files[0]); }
         function abrirRaioX(i){ vIdx=i; document.getElementById('pecas-modal').style.display='block'; document.getElementById('foto-tecnica-img').src=veiculos[i].fotoTecnica; px=0; py=0; sc=1; document.getElementById('foto-tecnica-canvas').style.transform='scale(1)'; renderPins(); renderListaPecas(); }
         function fecharPecas(){ document.getElementById('pecas-modal').style.display='none'; }
-        function exportarBackup(){ const b = new Blob([JSON.stringify({veiculos, historico})], {type:'application/json'}); const a = document.createElement('a'); a.href=URL.createObjectURL(b); a.download='astra_db.json'; a.click(); }
+        function exportarBackup(){ const b = new Blob([JSON.stringify({veiculos, historico})], {type:'application/json'}); const a = document.createElement('a'); a.href=URL.createObjectURL(b); a.download='motorista_db.json'; a.click(); }
         function importarBackup(input){ const f = new FileReader(); f.onload = e => { const d = JSON.parse(e.target.result); veiculos = d.veiculos; historico = d.historico; localStorage.setItem('veiculos', JSON.stringify(veiculos)); localStorage.setItem('historico', JSON.stringify(historico)); location.reload(); }; f.readAsText(input.files[0]); }
     </script>
 </body>
