@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#ff0033">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Motorista Pro</title>
     
     <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIk1vdG9yaXN0YSBQcm8iLAogICJzaG9ydF9uYW1lIjogIk1vdG9yaXN0YSIsCiAgInN0YXJ0X3VybCI6ICIuL2luZGV4Lmh0bWwiLAogICJkaXNwbGF5IjogInN0YW5kYWxvbmUiLAogICJiYWNrZ3JvdW5kX2NvbG9yIjogIiMwMDAwMDAiLAogICJ0aGVtZV9jb2xvciI6ICIjZmYwMDMzIiwKICAiaWNvbnMiOiBbCiAgICB7CiAgICAgICJzcmMiOiAibW90b3Jpc3RhLnBuZyIsCiAgICAgICJzaXplcyI6ICIxOTJ4MTkyIiwKICAgICAgInR5cGUiOiAiaW1hZ2UvcG5nIiwKICAgICAgInB1cnBvc2UiOiAiYW55IgogICAgfSwKICAgIHsKICAgICAgInNyYyI6ICJtb3RvcmlzdGEucG5nIiwKICAgICAgInNpemVzIjogIjUxMng1MTIiLAogICAgICAidHlwZSI6ICJpbWFnZS9wbmciLAogICAgICAicHVycG9zZSI6ICJhbnkiCiAgICB9CiAgXQp9">
@@ -24,12 +24,12 @@
         .glass-pill { background: var(--glass); backdrop-filter: blur(20px); border-radius: 24px; border: 1px solid rgba(255,255,255,0.1); }
         .glow-red { border-color: var(--red); box-shadow: 0 0 15px var(--red); }
         .glow-blue { border-color: var(--blue); box-shadow: 0 0 15px var(--blue); }
-        nav { position: fixed; bottom: 20px; left: 15px; right: 15px; height: 75px; display: flex; justify-content: space-around; align-items: center; z-index: 5000; background: #0a0a0a; border: 1px solid rgba(255,255,255,0.1); border-radius: 30px; }
-        input, select { background: rgba(255,255,255,0.05) !important; color: white !important; border: 1px solid rgba(255,255,255,0.1) !important; padding: 12px; border-radius: 12px; outline: none; }
         .custom-marker { font-size: 42px; display: flex; align-items: center; justify-content: center; }
         #foto-tecnica-viewport { position: relative; width: 100%; aspect-ratio: 16/9; overflow: hidden; border-radius: 20px; background: #000; border: 1px solid #333; touch-action: none; }
         #foto-tecnica-canvas { position: absolute; transform-origin: 0 0; width: 100%; height: 100%; }
         .pin-micro { position: absolute; width: 22px; height: 22px; border-radius: 50%; background: var(--blue); border: 2px solid #fff; box-shadow: 0 0 10px var(--blue); transform: translate(-50%, -50%); display: flex; align-items: center; justify-content: center; font-size: 10px; color: #000; font-weight: bold; pointer-events: none; }
+        nav { position: fixed; bottom: 20px; left: 15px; right: 15px; height: 75px; display: flex; justify-content: space-around; align-items: center; z-index: 5000; background: #0a0a0a; border: 1px solid rgba(255,255,255,0.1); border-radius: 30px; }
+        input, select { background: rgba(255,255,255,0.05) !important; color: white !important; border: 1px solid rgba(255,255,255,0.1) !important; padding: 12px; border-radius: 12px; outline: none; }
     </style>
 </head>
 <body>
@@ -39,7 +39,7 @@
             <span id="vel-lock" class="text-8xl font-black italic text-red-600">0</span>
             <p class="text-xs uppercase font-bold text-red-900 tracking-widest">KM/H</p>
         </div>
-        <button onclick="pedirDesbloqueio()" class="mt-20 glass-pill px-8 py-3 text-[10px] font-black uppercase border-red-900 text-red-900">Desbloquear</button>
+        <button onclick="pedirDesbloqueio()" class="mt-20 glass-pill px-8 py-3 text-[10px] font-black uppercase border-red-900 text-red-900">Desbloquear Painel</button>
     </div>
 
     <div id="map"></div>
@@ -70,15 +70,15 @@
 
     <main id="garagem" class="tab-content">
         <div class="space-y-6 pb-20">
-            <button id="pwa-install" class="hidden w-full bg-cyan-500 text-black p-4 rounded-3xl font-black text-xs uppercase animate-pulse shadow-lg">
-                📥 INSTALAR MOTORISTA PRO
+            <button id="pwa-btn" class="hidden w-full bg-cyan-500 text-black p-4 rounded-3xl font-black text-xs uppercase animate-bounce">
+                📥 Instalar Motorista Pro
             </button>
 
             <div class="glass-pill glow-red p-6 text-center">
-                <img src="motorista.png" class="w-14 h-14 mx-auto mb-2 object-contain">
-                <h2 id="garage-form-title" class="text-xs font-black uppercase text-red-500 mb-4">Garagem</h2>
+                <img src="motorista.png" class="w-16 h-16 mx-auto mb-4 object-contain">
+                <h2 id="garage-form-title" class="text-xs font-black uppercase text-red-500 mb-4">Novo Veículo</h2>
                 <div class="flex flex-col gap-2">
-                    <input type="text" id="g-nome" placeholder="Modelo">
+                    <input type="text" id="g-nome" placeholder="Nome/Modelo">
                     <div class="grid grid-cols-2 gap-2">
                         <input type="text" id="g-placa" placeholder="Placa">
                         <select id="g-tipo"><option value="🏎️">Carro</option><option value="🏍️">Moto</option></select>
@@ -87,145 +87,101 @@
                         <button onclick="document.getElementById('f-p').click()" class="bg-white/5 p-3 rounded-xl text-[9px] font-bold uppercase">Foto Perfil</button>
                         <button onclick="document.getElementById('f-t').click()" class="bg-white/5 p-3 rounded-xl text-[9px] font-bold uppercase">Foto Raio-X</button>
                     </div>
-                    <button id="btn-salvar-v" onclick="salvarVeiculo()" class="w-full bg-red-600 p-4 rounded-xl font-black text-xs uppercase">Gravar</button>
+                    <button onclick="salvarVeiculo()" class="w-full bg-red-600 p-4 rounded-xl font-black text-xs uppercase">Salvar</button>
                 </div>
             </div>
             <div id="lista-garagem" class="space-y-3"></div>
-            <div id="lista-historico" class="space-y-2"></div>
         </div>
     </main>
 
-    <div id="pecas-modal" class="hidden fixed inset-0 z-[6000] bg-black p-4 overflow-y-auto">
-        <div class="flex justify-between items-center mb-4"><h3 class="text-cyan-400 font-bold text-[10px] uppercase">Scanner</h3><button onclick="fecharPecas()" class="glass-pill px-6 py-2 text-[10px] font-bold">SAIR</button></div>
-        <div id="foto-tecnica-viewport"><div id="foto-tecnica-canvas"><img id="foto-tecnica-img" class="w-full h-full object-contain"><div id="pins-container" class="absolute inset-0"></div></div></div>
-        <div id="lista-pecas-raiox" class="mt-4 space-y-3 pb-24"></div>
-        <div id="peca-drawer" class="fixed inset-y-0 right-0 w-80 glass-pill m-2 translate-x-[115%] transition-transform duration-300 z-[6100] p-6 flex flex-col gap-3">
-            <h4 id="peca-form-title" class="text-cyan-400 font-black text-xs uppercase">Peça</h4>
-            <input type="text" id="p-nome" placeholder="Nome">
-            <input type="number" id="p-preco" placeholder="R$">
-            <input type="date" id="p-data">
-            <select id="p-estado"><option value="100">Novo</option><option value="10">Crítico</option></select>
-            <button onclick="document.getElementById('f-peca').click()" class="bg-white/10 p-3 rounded-xl text-[10px] font-bold">FOTO</button>
-            <div class="flex gap-2 mt-auto"><button onclick="fecharDrawer()" class="flex-1 bg-white/5 p-4 rounded-xl text-[10px]">VOLTAR</button><button onclick="confirmarPeca()" class="flex-2 bg-cyan-500 text-black p-4 rounded-xl font-black text-xs">SALVAR</button></div>
-        </div>
-    </div>
-
     <nav>
-        <button onclick="showTab('dash')" class="flex flex-col items-center"><span class="text-2xl">📡</span><span class="text-[8px] font-black text-red-500">DASH</span></button>
-        <button onclick="showTab('garagem')" class="flex flex-col items-center"><span class="text-2xl">⚙️</span><span class="text-[8px] font-black text-cyan-400">FROTA</span></button>
+        <button onclick="showTab('dash')" class="flex flex-col items-center"><span class="text-2xl">📡</span><span class="text-[8px] font-black text-red-500 uppercase">Painel</span></button>
+        <button onclick="showTab('garagem')" class="flex flex-col items-center"><span class="text-2xl">⚙️</span><span class="text-[8px] font-black text-cyan-400 uppercase">Frota</span></button>
     </nav>
 
     <input type="file" id="f-p" class="hidden" onchange="subirFoto(this,'p')">
     <input type="file" id="f-t" class="hidden" onchange="subirFoto(this,'t')">
-    <input type="file" id="f-peca" class="hidden" onchange="subirFoto(this,'peca')">
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // REGISTRO DE SERVICE WORKER REAL (sw.js deve existir na pasta)
+        // --- LÓGICA DE INSTALAÇÃO (O QUE RESOLVE O PROBLEMA) ---
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js').then(() => console.log("SW Ativo"));
+            const swCode = `self.addEventListener('fetch', function(e) { e.respondWith(fetch(e.request)); });`;
+            const blob = new Blob([swCode], {type: 'text/javascript'});
+            navigator.serviceWorker.register(URL.createObjectURL(blob));
         }
 
-        let map, marker, polyline, historyPolyline, userLat=0, userLon=0;
-        let veiculos = JSON.parse(localStorage.getItem('veiculos') || '[]');
-        let historico = JSON.parse(localStorage.getItem('historico') || '[]');
-        let tempP, tempT, tempPeca, vIdx = null, editIdx = null, pecaEditIdx = null, route = [], totalDist=0, lastCoord=null, logViagem = [], startTime=null;
-        let sc=1, px=0, py=0, evH=[], pD=-1, sx, sy, isP=false, pX, pY, isZooming=false, firstFix=true, deferredPrompt;
-
+        let deferredPrompt;
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
             deferredPrompt = e;
-            document.getElementById('pwa-install').classList.remove('hidden');
+            document.getElementById('pwa-btn').classList.remove('hidden');
         });
 
-        document.getElementById('pwa-install').addEventListener('click', async () => {
+        document.getElementById('pwa-btn').addEventListener('click', async () => {
             if (deferredPrompt) {
                 deferredPrompt.prompt();
                 const { outcome } = await deferredPrompt.userChoice;
-                if (outcome === 'accepted') document.getElementById('pwa-install').classList.add('hidden');
+                if (outcome === 'accepted') document.getElementById('pwa-btn').classList.add('hidden');
                 deferredPrompt = null;
             }
         });
+
+        // --- RESTANTE DAS FUNÇÕES (MAPA, VELOCÍMETRO, GARAGEM) ---
+        let map, marker, polyline, userLat=0, userLon=0;
+        let veiculos = JSON.parse(localStorage.getItem('veiculos') || '[]');
+        let tempP, tempT, vIdx = null, route = [], totalDist=0, lastCoord=null, startTime=null;
 
         window.onload = () => {
             map = L.map('map',{zoomControl:false, attributionControl:false}).setView([0,0],2);
             L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
             polyline = L.polyline([], {color:'#00f2ff', weight:4}).addTo(map);
-            historyPolyline = L.polyline([], {color:'#ff0033', weight:4, dashArray: '5, 10'}).addTo(map);
             
             navigator.geolocation.watchPosition(pos => {
                 userLat = pos.coords.latitude; userLon = pos.coords.longitude;
                 let speed = pos.coords.speed && pos.coords.speed > 0 ? Math.round(pos.coords.speed * 3.6) : 0;
                 document.getElementById('vel-display').innerText = speed;
                 document.getElementById('vel-lock').innerText = speed;
-                if(!startTime) startTime = Date.now();
+
                 if(speed > 0.5) {
-                    if(lastCoord) { let d = map.distance([userLat, userLon], [lastCoord.lat, lastCoord.lon]); if(d < 60) totalDist += d; }
-                    route.push([userLat, userLon]); polyline.setLatLngs(route);
-                    logViagem.push({h: new Date().toLocaleTimeString(), v: speed});
+                    if(lastCoord) {
+                        let d = map.distance([userLat, userLon], [lastCoord.lat, lastCoord.lon]);
+                        if(d < 60) totalDist += d;
+                    }
+                    route.push([userLat, userLon]);
+                    polyline.setLatLngs(route);
                     document.getElementById('dist-txt').innerText = (totalDist/1000).toFixed(2);
                 }
                 lastCoord = {lat:userLat, lon:userLon};
                 let emoji = (vIdx !== null) ? veiculos[vIdx].tipo : '🏎️';
                 if(!marker) marker = L.marker([userLat,userLon],{icon: L.divIcon({className:'custom-marker', html: emoji})}).addTo(map);
-                else { marker.setLatLng([userLat,userLon]); marker.setIcon(L.divIcon({className:'custom-marker', html: emoji})); }
-                if(firstFix){ map.setView([userLat,userLon], 17); firstFix=false; }
+                else marker.setLatLng([userLat,userLon]);
             }, null, {enableHighAccuracy:true});
-            initRaioX(); renderGaragem(); renderHistorico();
+
+            renderGaragem();
         };
 
+        function showTab(id){ document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active')); document.getElementById(id).classList.add('active'); map.invalidateSize(); }
         function ativarBloqueio(){ document.getElementById('blackout').classList.add('active'); }
         function pedirDesbloqueio(){ if(confirm("Desbloquear?")) document.getElementById('blackout').classList.remove('active'); }
-        function showTab(id){ document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active')); document.getElementById(id).classList.add('active'); map.invalidateSize(); }
-        function recentralizar(){ historyPolyline.setLatLngs([]); map.flyTo([userLat,userLon], 17); }
-
+        function subirFoto(i,t){ const r=new FileReader(); r.onload=e=>{ if(t==='p') tempP=e.target.result; else tempT=e.target.result; }; r.readAsDataURL(i.files[0]); }
+        
         function salvarVeiculo(){
             const n=document.getElementById('g-nome').value; if(!n) return;
-            const d = { nome: n, placa: document.getElementById('g-placa').value, tipo: document.getElementById('g-tipo').value, foto: tempP || (editIdx!==null?veiculos[editIdx].foto:''), fotoTecnica: tempT || (editIdx!==null?veiculos[editIdx].fotoTecnica:''), pecas: editIdx!==null?veiculos[editIdx].pecas:[] };
-            if(editIdx !== null) { veiculos[editIdx]=d; editIdx=null; } else { veiculos.push(d); }
-            localStorage.setItem('veiculos', JSON.stringify(veiculos)); renderGaragem();
+            veiculos.push({ nome: n, placa: document.getElementById('g-placa').value, tipo: document.getElementById('g-tipo').value, foto: tempP, fotoTecnica: tempT, pecas: [] });
+            localStorage.setItem('veiculos', JSON.stringify(veiculos)); 
+            document.getElementById('g-nome').value=''; renderGaragem();
         }
 
         function renderGaragem(){
             const l=document.getElementById('lista-garagem'); l.innerHTML='';
             veiculos.forEach((v,i)=>{
-                l.innerHTML += `<div class="glass-pill p-4 mb-2 glow-red"><div class="flex items-center mb-3"><img src="${v.foto}" class="w-12 h-12 rounded-full object-cover mr-4"><div class="flex-1"><p class="text-[10px] font-black uppercase">${v.nome}</p></div><button onclick="selV(${i})" class="bg-white text-black px-4 py-1 rounded-full text-[9px] font-black">USAR</button></div><div class="flex gap-2 border-t border-white/5 pt-2"><button onclick="abrirRaioX(${i})" class="flex-1 text-cyan-400 text-[8px] font-bold">SCANNER</button></div></div>`;
+                l.innerHTML += `<div class="glass-pill p-4 mb-2 glow-red flex items-center"><img src="${v.foto}" class="w-12 h-12 rounded-full mr-4"><div class="flex-1"><p class="text-[10px] font-black uppercase">${v.nome}</p></div><button onclick="selV(${i})" class="bg-white text-black px-4 py-1 rounded-full text-[9px] font-black italic">USAR</button></div>`;
             });
         }
         function selV(i){ vIdx=i; document.getElementById('v-txt').innerText=veiculos[i].nome; showTab('dash'); }
-        function finalizarViagem(){ historico.unshift({ id: Date.now(), data: new Date().toLocaleString(), km: (totalDist/1000).toFixed(2), coords: route }); localStorage.setItem('historico', JSON.stringify(historico)); location.reload(); }
-        function renderHistorico(){
-            const l=document.getElementById('lista-historico'); l.innerHTML='';
-            historico.forEach((h,i)=>{ l.innerHTML += `<div class="glass-pill p-3 flex justify-between items-center mb-1"><div class="flex-1" onclick="verRota(${i})"><span class="text-cyan-400 font-black text-xs">${h.km} KM</span></div></div>`; });
-        }
-        function verRota(i){ historyPolyline.setLatLngs(historico[i].coords); map.fitBounds(historyPolyline.getBounds()); showTab('dash'); }
-
-        function initRaioX(){
-            const vp=document.getElementById('foto-tecnica-viewport'), cv=document.getElementById('foto-tecnica-canvas');
-            vp.addEventListener('pointerdown', e=>{ evH.push(e); isP=true; sx=e.clientX-px; sy=e.clientY-py; if(evH.length>=2) isZooming=true; });
-            vp.addEventListener('pointermove', e=>{
-                const i=evH.findIndex(v=>v.pointerId===e.pointerId); evH[i]=e;
-                if(evH.length===2){ const c=Math.hypot(evH[0].clientX-evH[1].clientX, evH[0].clientY-evH[1].clientY); if(pD>0) sc=Math.min(Math.max(1,sc*(c/pD)),6); pD=c; } 
-                else if(isP && !isZooming){ px=e.clientX-sx; py=e.clientY-sy; }
-                cv.style.transform=`translate(${px}px,${py}px) scale(${sc})`;
-            });
-            vp.addEventListener('pointerup', e=>{
-                if(!isZooming && evH.length===1 && Math.abs(e.clientX-sx-px) < 5){ const r=vp.getBoundingClientRect(); pX=(e.clientX-r.left-px)/sc; pY=(e.clientY-r.top-py)/sc; abrirFormPeca(); }
-                evH=evH.filter(v=>v.pointerId!==e.pointerId); if(evH.length<1){ isZooming=false; pD=-1; isP=false; }
-            });
-        }
-        function abrirFormPeca(idx = null){ pecaEditIdx = idx; document.getElementById('peca-drawer').style.transform='translateX(0)'; }
-        function fecharDrawer(){ document.getElementById('peca-drawer').style.transform='translateX(115%)'; }
-        function confirmarPeca(){
-            const n=document.getElementById('p-nome').value; if(!n) return;
-            const d = { x: pX, y: pY, nome: n, preco: document.getElementById('p-preco').value, data: document.getElementById('p-data').value, estado: document.getElementById('p-estado').value, foto: tempPeca };
-            veiculos[vIdx].pecas.push(d); localStorage.setItem('veiculos', JSON.stringify(veiculos)); fecharDrawer(); renderPins(); renderListaPecas();
-        }
-        function renderPins(){ const c=document.getElementById('pins-container'); c.innerHTML=''; veiculos[vIdx].pecas.forEach((p,i)=>{ c.innerHTML+=`<div class="pin-micro" style="left:${p.x}px;top:${p.y}px;">${i+1}</div>`; }); }
-        function renderListaPecas(){ const l=document.getElementById('lista-pecas-raiox'); l.innerHTML=''; veiculos[vIdx].pecas.forEach((p,i)=>{ l.innerHTML+=`<div class="glass-pill p-4 flex gap-4 items-center"><div class="flex-1"><p class="text-[10px] font-black uppercase text-cyan-400">${p.nome}</p></div></div>`; }); }
-        function subirFoto(i,t){ const r=new FileReader(); r.onload=e=>{ if(t==='p') tempP=e.target.result; else if(t==='t') tempT=e.target.result; else tempPeca=e.target.result; }; r.readAsDataURL(i.files[0]); }
-        function abrirRaioX(i){ vIdx=i; document.getElementById('pecas-modal').style.display='block'; document.getElementById('foto-tecnica-img').src=veiculos[i].fotoTecnica; renderPins(); renderListaPecas(); }
-        function fecharPecas(){ document.getElementById('pecas-modal').style.display='none'; }
+        function recentralizar(){ map.flyTo([userLat,userLon], 17); }
+        function finalizarViagem(){ location.reload(); }
     </script>
 </body>
 </html>
