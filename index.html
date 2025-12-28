@@ -10,6 +10,7 @@
         #map { height: 250px; border-radius: 15px; margin: 10px 0; }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
+        #preview-img { display: none; max-height: 300px; width: 100%; object-fit: cover; border-radius: 12px; margin-bottom: 10px; border: 2px solid #eab308; }
     </style>
 </head>
 <body class="bg-gray-900 text-white font-sans">
@@ -25,7 +26,7 @@
     </header>
 
     <nav class="flex border-b border-gray-700">
-        <button onclick="showTab('dash')" class="flex-1 p-3 bg-gray-800 hover:bg-gray-700">Dashboard</button>
+        <button onclick="showTab('dash')" class="flex-1 p-3 bg-gray-800 hover:bg-gray-700 border-r border-gray-700">Dashboard</button>
         <button onclick="showTab('garagem')" class="flex-1 p-3 bg-gray-800 hover:bg-gray-700">Minha Garagem</button>
     </nav>
 
@@ -34,15 +35,13 @@
             <span class="text-6xl font-black text-yellow-400" id="vel-display">0</span>
             <span class="text-xl text-gray-400">km/h</span>
         </div>
-
         <div id="map"></div>
-
         <div class="grid grid-cols-2 gap-4 mt-2 text-center">
-            <div class="bg-gray-800 p-3 rounded-xl">
-                <p class="text-xs text-gray-400">Veículo Ativo</p>
-                <p id="veiculo-atual" class="font-bold">-</p>
+            <div class="bg-gray-800 p-3 rounded-xl border border-gray-700">
+                <p class="text-xs text-gray-400">Veículo</p>
+                <p id="veiculo-atual" class="font-bold text-yellow-500">Nenhum</p>
             </div>
-            <div class="bg-gray-800 p-3 rounded-xl">
+            <div class="bg-gray-800 p-3 rounded-xl border border-gray-700">
                 <p class="text-xs text-gray-400">Início</p>
                 <p id="hora-inicio" class="font-bold">-</p>
             </div>
@@ -51,18 +50,31 @@
 
     <main id="garagem" class="tab-content p-4">
         <h2 class="text-lg font-bold mb-4">Adicionar Veículo</h2>
-        <div class="bg-gray-800 p-4 rounded-xl space-y-3">
-            <input type="text" id="nome" placeholder="Nome (Ex: Meu Carro)" class="w-full p-2 rounded bg-gray-700 border-none">
+        
+        <div class="bg-gray-800 p-4 rounded-xl space-y-3 border border-gray-700">
+            <img id="preview-img" src="#" alt="Preview da foto">
+            
+            <input type="text" id="nome" placeholder="Nome/Apelido" class="w-full p-3 rounded bg-gray-700 border-none focus:ring-2 ring-yellow-500">
             <div class="grid grid-cols-2 gap-2">
-                <input type="text" id="marca" placeholder="Marca" class="p-2 rounded bg-gray-700 border-none">
-                <input type="text" id="modelo" placeholder="Modelo" class="p-2 rounded bg-gray-700 border-none">
+                <input type="text" id="marca" placeholder="Marca" class="p-3 rounded bg-gray-700 border-none">
+                <input type="text" id="modelo" placeholder="Modelo" class="p-3 rounded bg-gray-700 border-none">
             </div>
-            <input type="file" id="foto" accept="image/*" class="text-xs">
-            <button onclick="salvarVeiculo()" class="w-full bg-yellow-600 p-2 rounded font-bold uppercase">Salvar na Garagem</button>
+            
+            <label class="block">
+                <span class="text-sm text-gray-400">Escolha a foto da motorizada:</span>
+                <input type="file" id="foto" accept="image/*" onchange="previewFoto(this)" class="block w-full text-sm text-gray-400 mt-1
+                    file:mr-4 file:py-2 file:px-4
+                    file:rounded-full file:border-0
+                    file:text-sm file:font-semibold
+                    file:bg-yellow-500 file:text-black
+                    hover:file:bg-yellow-400">
+            </label>
+
+            <button onclick="salvarVeiculo()" class="w-full bg-yellow-600 hover:bg-yellow-500 p-3 rounded-xl font-bold uppercase transition">Salvar Veículo</button>
         </div>
 
-        <h2 class="text-lg font-bold mt-6 mb-4">Meus Veículos</h2>
-        <div id="lista-veiculos" class="space-y-3">
+        <h2 class="text-lg font-bold mt-8 mb-4">Meus Veículos</h2>
+        <div id="lista-veiculos" class="space-y-4 pb-20">
             </div>
     </main>
 
@@ -70,12 +82,10 @@
     <script>
         let map, marker, veiculos = JSON.parse(localStorage.getItem('veiculos') || '[]');
 
-        // INÍCIO AUTOMÁTICO
         window.onload = () => {
             const agora = new Date();
             document.getElementById('data-sessao').innerText = agora.toLocaleDateString();
             document.getElementById('hora-inicio').innerText = agora.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-            
             initMap();
             startTracking();
             renderVeiculos();
@@ -86,9 +96,89 @@
             document.getElementById(tabId).classList.add('active');
         }
 
-        // MAPA E GPS
+        // FUNÇÃO DE PREVIEW DA FOTO
+        function previewFoto(input) {
+            const preview = document.getElementById('preview-img');
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        function salvarVeiculo() {
+            const nome = document.getElementById('nome').value;
+            const marca = document.getElementById('marca').value;
+            const modelo = document.getElementById('modelo').value;
+            const preview = document.getElementById('preview-img');
+            
+            if (!nome) return alert("Dê um nome ao veículo!");
+
+            const novoVeiculo = {
+                id: Date.now(),
+                nome: nome,
+                marca: marca,
+                modelo: modelo,
+                foto: preview.src !== "#" ? preview.src : 'https://via.placeholder.com/150'
+            };
+
+            veiculos.push(novoVeiculo);
+            localStorage.setItem('veiculos', JSON.stringify(veiculos));
+            renderVeiculos();
+            
+            // Limpar formulário
+            document.getElementById('nome').value = '';
+            document.getElementById('marca').value = '';
+            document.getElementById('modelo').value = '';
+            document.getElementById('foto').value = '';
+            preview.style.display = 'none';
+            preview.src = '#';
+            
+            alert("Veículo guardado na garagem!");
+        }
+
+        function renderVeiculos() {
+            const container = document.getElementById('lista-veiculos');
+            container.innerHTML = veiculos.length === 0 ? '<p class="text-gray-500">Garagem vazia.</p>' : '';
+            
+            veiculos.forEach((v, index) => {
+                container.innerHTML += `
+                    <div class="bg-gray-800 rounded-2xl overflow-hidden border border-gray-700 shadow-lg">
+                        <img src="${v.foto}" class="w-full h-40 object-cover">
+                        <div class="p-4 flex justify-between items-center">
+                            <div>
+                                <h3 class="font-bold text-yellow-500">${v.nome}</h3>
+                                <p class="text-xs text-gray-400">${v.marca} ${v.modelo}</p>
+                            </div>
+                            <div class="flex gap-2">
+                                <button onclick="selecionarVeiculo('${v.nome}')" class="bg-green-600 p-2 rounded-lg text-xs font-bold">USAR</button>
+                                <button onclick="excluirVeiculo(${index})" class="bg-red-600 p-2 rounded-lg text-xs">Apagar</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function excluirVeiculo(index) {
+            if(confirm("Remover veículo?")) {
+                veiculos.splice(index, 1);
+                localStorage.setItem('veiculos', JSON.stringify(veiculos));
+                renderVeiculos();
+            }
+        }
+
+        function selecionarVeiculo(nome) {
+            document.getElementById('veiculo-atual').innerText = nome;
+            showTab('dash');
+        }
+
+        // GPS E MAPA (Simples)
         function initMap() {
-            map = L.map('map').setView([0, 0], 15);
+            map = L.map('map').setView([0, 0], 2);
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
             marker = L.marker([0, 0]).addTo(map);
         }
@@ -99,73 +189,14 @@
                     const lat = pos.coords.latitude;
                     const lon = pos.coords.longitude;
                     const speed = pos.coords.speed ? (pos.coords.speed * 3.6).toFixed(0) : 0;
-
                     document.getElementById('vel-display').innerText = speed;
-                    document.getElementById('status-gps').innerText = "● GPS On";
+                    document.getElementById('status-gps').innerText = "● GPS Ativo";
                     document.getElementById('status-gps').className = "text-green-500 text-xs";
-
-                    const newPos = [lat, lon];
-                    map.setView(newPos);
-                    marker.setLatLng(newPos);
-                }, err => console.error(err), { enableHighAccuracy: true });
+                    const p = [lat, lon];
+                    map.setView(p, 16);
+                    marker.setLatLng(p);
+                }, null, { enableHighAccuracy: true });
             }
-        }
-
-        // LÓGICA DA GARAGEM
-        function salvarVeiculo() {
-            const nome = document.getElementById('nome').value;
-            const marca = document.getElementById('marca').value;
-            const fotoInput = document.getElementById('foto');
-            
-            if (!nome) return alert("Digite ao menos o nome!");
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const novoVeiculo = {
-                    id: Date.now(),
-                    nome,
-                    marca,
-                    foto: e.target.result // Base64 da imagem
-                };
-                veiculos.push(novoVeiculo);
-                localStorage.setItem('veiculos', JSON.stringify(veiculos));
-                renderVeiculos();
-                limparCampos();
-            };
-
-            if (fotoInput.files[0]) {
-                reader.readAsDataURL(fotoInput.files[0]);
-            } else {
-                reader.onload({ target: { result: 'https://via.placeholder.com/150' } });
-            }
-        }
-
-        function renderVeiculos() {
-            const container = document.getElementById('lista-veiculos');
-            container.innerHTML = '';
-            veiculos.forEach(v => {
-                container.innerHTML += `
-                    <div class="flex items-center bg-gray-800 p-3 rounded-xl border-l-4 border-yellow-500">
-                        <img src="${v.foto}" class="w-16 h-16 rounded-lg object-cover mr-4">
-                        <div class="flex-1">
-                            <p class="font-bold">${v.nome}</p>
-                            <p class="text-xs text-gray-400">${v.marca}</p>
-                        </div>
-                        <button onclick="selecionarVeiculo('${v.nome}')" class="bg-blue-600 px-3 py-1 rounded text-xs">Usar</button>
-                    </div>
-                `;
-            });
-        }
-
-        function selecionarVeiculo(nome) {
-            document.getElementById('veiculo-atual').innerText = nome;
-            showTab('dash');
-        }
-
-        function limparCampos() {
-            document.getElementById('nome').value = '';
-            document.getElementById('marca').value = '';
-            document.getElementById('foto').value = '';
         }
     </script>
 </body>
