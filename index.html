@@ -2,129 +2,171 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Project Red - Ghost Map</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AutoMonitor - GPS & Garagem</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@900&display=swap" rel="stylesheet">
-    
     <style>
-        :root { --accent: #FF0000; --bg: #000000; }
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: #000; overflow: hidden; }
-
-        /* O SEGREDO DO MAPA VERMELHO: Filtro SVG */
-        #map { 
-            position: absolute; inset: 0; z-index: 1; background: #000;
-            filter: invert(100%) hue-rotate(150deg) brightness(1.2) saturate(5) contrast(1.2);
-        }
-
-        /* HUD SOBREPOSTO */
-        .hud-top {
-            position: fixed; top: 0; width: 100%; background: rgba(0,0,0,0.85);
-            padding: 10px; z-index: 9999; display: flex; justify-content: space-around;
-            border-bottom: 2px solid var(--accent); font-family: 'Orbitron'; color: #fff;
-        }
-        .tel-val { display: block; font-size: 14px; color: var(--accent); }
-        .tel-label { font-size: 8px; color: #666; }
-
-        #floating-bubble {
-            position: fixed; bottom: 100px; right: 20px; width: 90px; height: 90px;
-            background: #000; border: 4px solid var(--accent); border-radius: 50%;
-            z-index: 9999; display: flex; flex-direction: column; align-items: center;
-            justify-content: center; box-shadow: 0 0 30px rgba(255,0,0,0.6);
-        }
-        #bubble-val { font-family: 'Orbitron'; font-size: 32px; color: #fff; }
-        #bubble-unit { font-size: 10px; color: var(--accent); font-weight: bold; }
-
-        .nav-bar {
-            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
-            width: 90%; height: 60px; background: rgba(0,0,0,0.9); border: 1px solid #333;
-            border-radius: 20px; z-index: 9999; display: flex; justify-content: space-around; align-items: center;
-        }
+        #map { height: 250px; border-radius: 15px; margin: 10px 0; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
     </style>
 </head>
-<body>
+<body class="bg-gray-900 text-white font-sans">
 
-    <div class="hud-top">
-        <div style="text-align:center"><span class="tel-label">MÁX</span><span class="tel-val" id="tel-max">0</span></div>
-        <div style="text-align:center"><span class="tel-label">MÉDIA</span><span class="tel-val" id="tel-avg">0</span></div>
-        <div style="text-align:center"><span class="tel-label">MIN</span><span class="tel-val" id="tel-min">0</span></div>
-        <div style="text-align:center"><span class="tel-label">DIST</span><span class="tel-val" id="tel-dist">0.0</span></div>
-    </div>
+    <header class="p-4 bg-gray-800 shadow-xl flex justify-between items-center">
+        <div>
+            <h1 class="text-xl font-bold text-yellow-500">AutoMonitor</h1>
+            <p id="data-sessao" class="text-xs text-gray-400"></p>
+        </div>
+        <div class="text-right">
+            <span id="status-gps" class="text-red-500 text-xs">● GPS Off</span>
+        </div>
+    </header>
 
-    <div id="map"></div>
-
-    <div id="floating-bubble">
-        <div id="bubble-val">00</div>
-        <div id="bubble-unit">KM/H</div>
-    </div>
-
-    <nav class="nav-bar">
-        <button onclick="location.reload()" style="background:none; border:none; color:red; font-weight:bold;">RELOAD MAP</button>
-        <div id="status-gps" style="font-size:8px; color:lime;">GPS ATIVO</div>
+    <nav class="flex border-b border-gray-700">
+        <button onclick="showTab('dash')" class="flex-1 p-3 bg-gray-800 hover:bg-gray-700">Dashboard</button>
+        <button onclick="showTab('garagem')" class="flex-1 p-3 bg-gray-800 hover:bg-gray-700">Minha Garagem</button>
     </nav>
 
+    <main id="dash" class="tab-content active p-4">
+        <div class="flex flex-col items-center justify-center py-6 bg-gray-800 rounded-3xl shadow-inner border border-gray-700">
+            <span class="text-6xl font-black text-yellow-400" id="vel-display">0</span>
+            <span class="text-xl text-gray-400">km/h</span>
+        </div>
+
+        <div id="map"></div>
+
+        <div class="grid grid-cols-2 gap-4 mt-2 text-center">
+            <div class="bg-gray-800 p-3 rounded-xl">
+                <p class="text-xs text-gray-400">Veículo Ativo</p>
+                <p id="veiculo-atual" class="font-bold">-</p>
+            </div>
+            <div class="bg-gray-800 p-3 rounded-xl">
+                <p class="text-xs text-gray-400">Início</p>
+                <p id="hora-inicio" class="font-bold">-</p>
+            </div>
+        </div>
+    </main>
+
+    <main id="garagem" class="tab-content p-4">
+        <h2 class="text-lg font-bold mb-4">Adicionar Veículo</h2>
+        <div class="bg-gray-800 p-4 rounded-xl space-y-3">
+            <input type="text" id="nome" placeholder="Nome (Ex: Meu Carro)" class="w-full p-2 rounded bg-gray-700 border-none">
+            <div class="grid grid-cols-2 gap-2">
+                <input type="text" id="marca" placeholder="Marca" class="p-2 rounded bg-gray-700 border-none">
+                <input type="text" id="modelo" placeholder="Modelo" class="p-2 rounded bg-gray-700 border-none">
+            </div>
+            <input type="file" id="foto" accept="image/*" class="text-xs">
+            <button onclick="salvarVeiculo()" class="w-full bg-yellow-600 p-2 rounded font-bold uppercase">Salvar na Garagem</button>
+        </div>
+
+        <h2 class="text-lg font-bold mt-6 mb-4">Meus Veículos</h2>
+        <div id="lista-veiculos" class="space-y-3">
+            </div>
+    </main>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        let db = JSON.parse(localStorage.getItem('red_db_v33')) || { 
-            odo: 0, role: { dist: 0, max: 0, min: 999, speeds: [], path: [] }
-        };
+        let map, marker, veiculos = JSON.parse(localStorage.getItem('veiculos') || '[]');
 
-        let map, polyline, marker;
-
-        function initMap() {
-            // Usando CartoDB Positron que responde melhor ao filtro de inversão para ficar vermelho
-            map = L.map('map', { zoomControl: false, attributionControl: false }).setView([0,0], 17);
-            
-            L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-                maxZoom: 19
-            }).addTo(map);
-
-            polyline = L.polyline([], { color: '#ff0000', weight: 6, opacity: 1 }).addTo(map);
-            marker = L.circleMarker([0,0], { radius: 6, color: '#fff', fillColor: '#ff0000', fillOpacity: 1 }).addTo(map);
-        }
-
-        function updateGPS() {
-            navigator.geolocation.watchPosition((pos) => {
-                const lat = pos.coords.latitude;
-                const lon = pos.coords.longitude;
-                const speed = Math.round((pos.coords.speed || 0) * 3.6);
-                const coords = [lat, lon];
-
-                marker.setLatLng(coords);
-                map.panTo(coords);
-
-                // Telemetria do Rolê
-                if (speed > 2) {
-                    db.role.path.push(coords);
-                    polyline.setLatLngs(db.role.path);
-                    if (speed > db.role.max) db.role.max = speed;
-                    if (speed < db.role.min) db.role.min = speed;
-                    db.role.speeds.push(speed);
-                    
-                    // Cálculo de distância (simplificado para economia de processamento)
-                    if(db.role.path.length > 1) {
-                        db.role.dist += 0.002; // Aproximação por polling
-                    }
-                }
-
-                document.getElementById('bubble-val').innerText = speed;
-                document.getElementById('tel-max').innerText = db.role.max;
-                document.getElementById('tel-min').innerText = db.role.min === 999 ? 0 : db.role.min;
-                document.getElementById('tel-dist').innerText = db.role.dist.toFixed(1);
-                
-                const avg = db.role.speeds.length > 0 ? (db.role.speeds.reduce((a,b)=>a+b)/db.role.speeds.length).toFixed(0) : 0;
-                document.getElementById('tel-avg').innerText = avg;
-
-                localStorage.setItem('red_db_v33', JSON.stringify(db));
-            }, (err) => {
-                document.getElementById('status-gps').innerText = "ERRO GPS: " + err.message;
-            }, { enableHighAccuracy: true });
-        }
-
+        // INÍCIO AUTOMÁTICO
         window.onload = () => {
+            const agora = new Date();
+            document.getElementById('data-sessao').innerText = agora.toLocaleDateString();
+            document.getElementById('hora-inicio').innerText = agora.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            
             initMap();
-            updateGPS();
+            startTracking();
+            renderVeiculos();
         };
+
+        function showTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+        }
+
+        // MAPA E GPS
+        function initMap() {
+            map = L.map('map').setView([0, 0], 15);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+            marker = L.marker([0, 0]).addTo(map);
+        }
+
+        function startTracking() {
+            if ("geolocation" in navigator) {
+                navigator.geolocation.watchPosition(pos => {
+                    const lat = pos.coords.latitude;
+                    const lon = pos.coords.longitude;
+                    const speed = pos.coords.speed ? (pos.coords.speed * 3.6).toFixed(0) : 0;
+
+                    document.getElementById('vel-display').innerText = speed;
+                    document.getElementById('status-gps').innerText = "● GPS On";
+                    document.getElementById('status-gps').className = "text-green-500 text-xs";
+
+                    const newPos = [lat, lon];
+                    map.setView(newPos);
+                    marker.setLatLng(newPos);
+                }, err => console.error(err), { enableHighAccuracy: true });
+            }
+        }
+
+        // LÓGICA DA GARAGEM
+        function salvarVeiculo() {
+            const nome = document.getElementById('nome').value;
+            const marca = document.getElementById('marca').value;
+            const fotoInput = document.getElementById('foto');
+            
+            if (!nome) return alert("Digite ao menos o nome!");
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const novoVeiculo = {
+                    id: Date.now(),
+                    nome,
+                    marca,
+                    foto: e.target.result // Base64 da imagem
+                };
+                veiculos.push(novoVeiculo);
+                localStorage.setItem('veiculos', JSON.stringify(veiculos));
+                renderVeiculos();
+                limparCampos();
+            };
+
+            if (fotoInput.files[0]) {
+                reader.readAsDataURL(fotoInput.files[0]);
+            } else {
+                reader.onload({ target: { result: 'https://via.placeholder.com/150' } });
+            }
+        }
+
+        function renderVeiculos() {
+            const container = document.getElementById('lista-veiculos');
+            container.innerHTML = '';
+            veiculos.forEach(v => {
+                container.innerHTML += `
+                    <div class="flex items-center bg-gray-800 p-3 rounded-xl border-l-4 border-yellow-500">
+                        <img src="${v.foto}" class="w-16 h-16 rounded-lg object-cover mr-4">
+                        <div class="flex-1">
+                            <p class="font-bold">${v.nome}</p>
+                            <p class="text-xs text-gray-400">${v.marca}</p>
+                        </div>
+                        <button onclick="selecionarVeiculo('${v.nome}')" class="bg-blue-600 px-3 py-1 rounded text-xs">Usar</button>
+                    </div>
+                `;
+            });
+        }
+
+        function selecionarVeiculo(nome) {
+            document.getElementById('veiculo-atual').innerText = nome;
+            showTab('dash');
+        }
+
+        function limparCampos() {
+            document.getElementById('nome').value = '';
+            document.getElementById('marca').value = '';
+            document.getElementById('foto').value = '';
+        }
     </script>
 </body>
 </html>
