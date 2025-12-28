@@ -295,4 +295,54 @@
         }
         function renderListaPecas(){ 
             const l=document.getElementById('lista-pecas-raiox'); l.innerHTML=''; 
-            veiculos[
+            veiculos[vIdx].pecas.forEach((p,i)=>{ 
+                l.innerHTML+=`<div class="bg-white/5 p-4 rounded-2xl flex justify-between items-center border border-white/5">
+                    <div class="text-[10px] font-bold uppercase">${p.nome}<br><span class="text-green-500 font-black">R$ ${p.custo}</span></div>
+                    <button onclick="removeP(${i})" class="text-red-500 font-bold text-[9px] bg-red-500/10 px-3 py-2 rounded-lg">REMOVER</button>
+                </div>`; 
+            });
+        }
+        function removeP(i){ veiculos[vIdx].pecas.splice(i,1); localStorage.setItem('veiculos',JSON.stringify(veiculos)); renderPins(); renderListaPecas(); }
+
+        // AUXILIARES REVISADOS
+        function showTab(id){ document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active')); document.getElementById(id).classList.add('active'); if(id==='dash') map.invalidateSize(); }
+        function fecharPecas(){ document.getElementById('pecas-modal').style.display='none'; }
+        function fecharDrawer(){ document.getElementById('peca-drawer').classList.remove('open'); }
+        function recentralizar(){ map.flyTo([userLat,userLon],18); }
+        function bloquear(){ document.getElementById('lock-screen').style.display='flex'; }
+        function desbloquear(){ if(confirm("Deseja sair do modo de bloqueio?")) document.getElementById('lock-screen').style.display='none'; }
+        function finalizarViagem(){ 
+            if(totalDist<100) return alert("Viagem muito curta para registrar."); 
+            historico.unshift({data:new Date().toLocaleString('pt-BR'), km:(totalDist/1000).toFixed(2), logs:[...speeds]}); 
+            localStorage.setItem('historico',JSON.stringify(historico.slice(0,15))); 
+            location.reload(); 
+        }
+        function renderHistorico(){ 
+            const h=document.getElementById('lista-historico'); h.innerHTML=''; 
+            historico.forEach((v,i)=>{ 
+                h.innerHTML+=`<div class="bg-white/5 p-4 rounded-2xl flex justify-between items-center border border-white/5">
+                    <span class="text-[9px] font-bold text-gray-300 uppercase italic">${v.data} • ${v.km} KM</span>
+                    <button onclick="verGrafico(${i})" class="text-yellow-500 bg-yellow-500/10 p-2 rounded-lg">📊</button>
+                </div>`; 
+            }); 
+        }
+        function verGrafico(i){ 
+            document.getElementById('chart-modal').style.display = 'block'; 
+            if(chart) chart.destroy(); 
+            chart = new Chart(document.getElementById('speedChart').getContext('2d'), {
+                type:'line',
+                data:{
+                    labels: historico[i].logs.map((_,x)=>x),
+                    datasets:[{label:'Velocidade KM/H', data:historico[i].logs, borderColor:'#eab308', fill:true, backgroundColor:'rgba(234,179,8,0.1)', tension:0.4, pointRadius:0}]
+                },
+                options:{
+                    responsive:true,
+                    maintainAspectRatio:false,
+                    scales:{ y:{beginAtZero:true, grid:{color:'rgba(255,255,255,0.05)'}, ticks:{color:'#555'}}, x:{display:false} },
+                    plugins:{ legend:{display:false} }
+                }
+            }); 
+        }
+    </script>
+</body>
+</html>
