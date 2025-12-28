@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AutoMonitor Ultra Pro + Gestão de Peças</title>
+    <title>AutoMonitor Ultra Pro - Versão Estável</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -17,7 +17,7 @@
         .custom-marker { display: flex; align-items: center; justify-content: center; font-size: 26px; background: rgba(59, 130, 246, 0.4); border: 2px solid white; border-radius: 50%; width: 48px !important; height: 48px !important; }
         #lock-screen { display: none; position: fixed; inset: 0; z-index: 99999; background: #000; pointer-events: auto; }
         #chart-modal, #pecas-modal { display: none; position: fixed; inset: 0; z-index: 200; background: rgba(0,0,0,0.98); padding: 20px; overflow-y: auto; }
-        .pin { position: absolute; width: 24px; height: 24px; background: #ef4444; border: 2px solid white; border-radius: 50%; transform: translate(-50%, -50%); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; }
+        .pin { position: absolute; width: 24px; height: 24px; background: #ef4444; border: 2px solid white; border-radius: 50%; transform: translate(-50%, -50%); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; pointer-events: auto; }
         .tipo-btn.active { border: 2px solid #eab308; background: rgba(234, 179, 8, 0.3); }
     </style>
 </head>
@@ -29,16 +29,12 @@
             <button onclick="fecharPecas()" class="bg-red-500 text-white px-4 py-1 rounded-full font-bold text-xs">SAIR</button>
         </div>
 
-        <div class="relative w-full aspect-video bg-gray-900 rounded-2xl overflow-hidden mb-6 border-2 border-gray-800" id="foto-tecnica-container" onclick="adicionarPin(event)">
-            <img id="foto-tecnica-display" class="w-full h-full object-cover opacity-60">
-            <div id="pins-overlay"></div>
-            <div class="absolute inset-0 flex items-center justify-center pointer-events-none" id="hint-click">
-                <p class="text-[10px] text-yellow-500 font-bold uppercase tracking-widest bg-black/50 px-3 py-1 rounded-full">Clique na foto para marcar uma peça</p>
-            </div>
+        <div class="relative w-full aspect-video bg-gray-900 rounded-2xl overflow-hidden mb-6 border-2 border-gray-800" id="foto-tecnica-container">
+            <img id="foto-tecnica-display" class="w-full h-full object-cover opacity-60 pointer-events-auto" onclick="adicionarPin(event)">
+            <div id="pins-overlay" class="pointer-events-none"></div>
         </div>
 
-        <div id="lista-detalhes-pecas" class="space-y-4 pb-10">
-            </div>
+        <div id="lista-detalhes-pecas" class="space-y-4 pb-10"></div>
     </div>
 
     <div id="chart-modal" class="flex flex-col">
@@ -54,7 +50,7 @@
     <div id="lock-screen" class="flex flex-col items-center justify-center text-center">
         <span id="vel-lock" class="text-[120px] font-black text-yellow-500 leading-none">0</span>
         <span class="text-sm font-bold text-gray-500 tracking-[0.5em] uppercase">KM/H</span>
-        <button onclick="confirmarDesbloqueio()" class="mt-20 w-16 h-16 rounded-full bg-gray-900 border border-gray-700 flex items-center justify-center text-xl active:scale-90 transition-transform">🔒</button>
+        <button onclick="confirmarDesbloqueio()" class="mt-20 w-16 h-16 rounded-full bg-gray-900 border border-gray-700 flex items-center justify-center text-xl">🔒</button>
     </div>
 
     <main id="dash" class="tab-content active">
@@ -75,11 +71,11 @@
         <div class="overlay top-36 left-4 right-4 flex gap-2">
             <div class="glass flex-1 p-3 rounded-2xl flex flex-col items-center">
                 <span id="dist-display" class="text-xl font-black">0.00</span>
-                <span class="text-[8px] font-bold text-gray-500 uppercase">Distância</span>
+                <span class="text-[8px] font-bold text-gray-500 uppercase">KM</span>
             </div>
             <div class="glass flex-1 p-3 rounded-2xl flex flex-col items-center">
                 <span id="time-display" class="text-xl font-black">00:00:00</span>
-                <span class="text-[8px] font-bold text-gray-500 uppercase">Tempo</span>
+                <span class="text-[8px] font-bold text-gray-500 uppercase">TEMPO</span>
             </div>
         </div>
         <div class="overlay bottom-28 right-6 flex flex-col gap-4 interactive">
@@ -90,63 +86,42 @@
     </main>
 
     <main id="garagem" class="tab-content glass p-6">
-        <h2 class="text-2xl font-black italic text-yellow-500 uppercase mb-6">Minha Garagem</h2>
+        <h2 class="text-2xl font-black italic text-yellow-500 uppercase mb-6">Garagem</h2>
         
         <div class="bg-gray-800/40 p-5 rounded-3xl border border-gray-700 space-y-4 mb-10">
-            <input type="text" id="nome" placeholder="Nome do Veículo" class="interactive w-full p-4 rounded-xl bg-gray-950 border border-gray-700 outline-none">
-            
+            <input type="text" id="nome-veiculo" placeholder="Nome do Veículo" class="interactive w-full p-4 rounded-xl bg-gray-950 border border-gray-700 outline-none">
             <div class="grid grid-cols-2 gap-3">
-                <div class="flex flex-col gap-2">
-                    <label class="text-[9px] font-bold text-gray-500 uppercase px-2">Foto Perfil</label>
-                    <button onclick="document.getElementById('foto').click()" class="interactive bg-gray-700 p-3 rounded-xl text-[10px] font-bold uppercase">📸 Perfil</button>
-                </div>
-                <div class="flex flex-col gap-2">
-                    <label class="text-[9px] font-bold text-gray-500 uppercase px-2">Foto Manutenção</label>
-                    <button onclick="document.getElementById('foto-manutencao').click()" class="interactive bg-yellow-600/20 text-yellow-500 p-3 rounded-xl text-[10px] font-bold uppercase">🛠️ Raio-X</button>
-                </div>
+                <button onclick="document.getElementById('foto-perfil-input').click()" class="interactive bg-gray-700 p-3 rounded-xl text-[10px] font-bold uppercase">📸 Foto Perfil</button>
+                <button onclick="document.getElementById('foto-tecnica-input').click()" class="interactive bg-yellow-600/20 text-yellow-500 p-3 rounded-xl text-[10px] font-bold uppercase">🛠️ Foto Raio-X</button>
             </div>
-            
-            <input type="file" id="foto" accept="image/*" class="hidden" onchange="processarFoto(this, 'preview-perfil')">
-            <input type="file" id="foto-manutencao" accept="image/*" class="hidden" onchange="processarFoto(this, 'preview-tecnica')">
-            
+            <input type="file" id="foto-perfil-input" accept="image/*" class="hidden" onchange="processarFoto(this, 'perfil')">
+            <input type="file" id="foto-tecnica-input" accept="image/*" class="hidden" onchange="processarFoto(this, 'tecnica')">
             <div class="flex justify-around bg-gray-950 p-2 rounded-2xl border border-gray-700 interactive">
                 <button onclick="setTipo('Bicicleta', '🚲')" class="tipo-btn p-3 text-2xl">🚲</button>
                 <button onclick="setTipo('Moto', '🏍️')" class="tipo-btn p-3 text-2xl">🏍️</button>
                 <button onclick="setTipo('Carro', '🚗')" class="tipo-btn p-3 text-2xl">🚗</button>
             </div>
-            <button onclick="salvarVeiculo()" class="interactive w-full bg-yellow-500 text-black p-4 rounded-xl font-black uppercase tracking-widest shadow-lg shadow-yellow-500/20">Criar Veículo</button>
+            <button onclick="salvarVeiculo()" class="interactive w-full bg-yellow-500 text-black p-4 rounded-xl font-black uppercase">Adicionar Veículo</button>
         </div>
 
-        <h3 class="text-xs font-black text-gray-500 mb-4 uppercase tracking-[0.2em]">Frota Ativa</h3>
         <div id="lista-veiculos" class="space-y-4 mb-10 interactive"></div>
-
-        <h3 class="text-xs font-black text-gray-500 mb-4 uppercase tracking-[0.2em]">Histórico e Telemetria</h3>
         <div id="historico-viagens" class="space-y-3 mb-10 interactive"></div>
-
-        <div class="grid grid-cols-2 gap-3 pb-20 interactive">
-            <button onclick="exportarDados()" class="bg-gray-800 p-4 rounded-2xl text-[9px] font-bold uppercase border border-gray-700">Backup JSON</button>
-            <button onclick="document.getElementById('import-file').click()" class="bg-gray-800 p-4 rounded-2xl text-[9px] font-bold uppercase border border-gray-700">Importar</button>
-            <input type="file" id="import-file" class="hidden" onchange="importarDados(this)">
-        </div>
     </main>
 
     <nav class="fixed bottom-6 left-6 right-6 flex justify-around p-4 glass rounded-full z-[100] border border-white/10 shadow-2xl">
         <button onclick="showTab('dash')" class="text-[10px] font-black tracking-widest text-yellow-500 uppercase">Dashboard</button>
-        <div class="w-[1px] h-4 bg-gray-700"></div>
         <button onclick="showTab('garagem')" class="text-[10px] font-black tracking-widest text-gray-400 uppercase">Garagem</button>
     </nav>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // ESTADO GLOBAL
-        let map, marker, polyline, userLat, userLon, speedChart;
+        let map, marker, polyline, userLat = 0, userLon = 0, speedChart;
         let veiculos = JSON.parse(localStorage.getItem('veiculos') || '[]');
         let historico = JSON.parse(localStorage.getItem('historico') || '[]');
         let rotaAtual = [], logsVelocidade = [];
-        let autoCenter = true, totalDist = 0, startTime = Date.now(), lastCoord = null, maxSpeed = 0, currentSpeed = 0;
-        let tipoEscolhido = { nome: '', icone: '📍' };
-        let tempFotoPerfil = null, tempFotoTecnica = null;
-        let veiculoEmEdicaoIdx = null;
+        let autoCenter = true, totalDist = 0, startTime = Date.now(), lastCoord = null, currentSpeed = 0, maxSpeed = 0;
+        let tipoEscolhido = { nome: 'Carro', icone: '🚗' };
+        let tempFotoPerfil = null, tempFotoTecnica = null, veiculoEmEdicaoIdx = null;
 
         window.onload = () => {
             initMap();
@@ -157,48 +132,81 @@
             setInterval(() => { if(totalDist > 0) logsVelocidade.push(currentSpeed); }, 1000);
         };
 
-        // --- GESTÃO DE VEÍCULOS E FOTOS ---
-        function processarFoto(input, destino) {
-            if (input.files && input.files[0]) {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    const img = new Image();
-                    img.src = e.target.result;
-                    img.onload = () => {
-                        const canvas = document.createElement('canvas');
-                        const MAX = 500;
-                        let w = img.width, h = img.height;
-                        if (w > h) { if (w > MAX) { h *= MAX/w; w = MAX; } } else { if (h > MAX) { w *= MAX/h; h = MAX; } }
-                        canvas.width = w; canvas.height = h;
-                        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-                        const result = canvas.toDataURL('image/jpeg', 0.7);
-                        if(destino === 'preview-perfil') tempFotoPerfil = result;
-                        else tempFotoTecnica = result;
-                        alert("Foto processada!");
+        function initMap() {
+            map = L.map('map', { zoomControl: false, attributionControl: false }).setView([38.7, -9.1], 13);
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
+            polyline = L.polyline([], {color: '#3b82f6', weight: 5}).addTo(map);
+            updateMarkerIcon('📍');
+            map.on('movestart', () => { autoCenter = false; document.getElementById('btn-recenter').classList.remove('opacity-30'); });
+        }
+
+        function startTracking() {
+            if ("geolocation" in navigator) {
+                navigator.geolocation.watchPosition(pos => {
+                    const acc = pos.coords.accuracy;
+                    if(acc > 40) return;
+                    
+                    userLat = pos.coords.latitude;
+                    userLon = pos.coords.longitude;
+                    currentSpeed = pos.coords.speed ? pos.coords.speed * 3.6 : 0;
+                    
+                    document.getElementById('vel-display').innerText = Math.round(currentSpeed);
+                    document.getElementById('vel-lock').innerText = Math.round(currentSpeed);
+                    document.getElementById('gps-dot').className = acc < 20 ? "w-2 h-2 rounded-full bg-green-500" : "w-2 h-2 rounded-full bg-yellow-500";
+                    document.getElementById('status-gps').innerText = "Sinal OK";
+
+                    if(currentSpeed > maxSpeed) maxSpeed = currentSpeed;
+
+                    if(lastCoord && currentSpeed > 1.5) {
+                        let d = map.distance([userLat, userLon], [lastCoord.lat, lastCoord.lon]);
+                        if(d < 100) {
+                            totalDist += d;
+                            document.getElementById('dist-display').innerText = (totalDist / 1000).toFixed(2);
+                            rotaAtual.push([userLat, userLon]);
+                            polyline.setLatLngs(rotaAtual);
+                        }
                     }
-                };
-                reader.readAsDataURL(input.files[0]);
+                    lastCoord = {lat: userLat, lon: userLon};
+                    if(marker) marker.setLatLng([userLat, userLon]);
+                    if(autoCenter) map.setView([userLat, userLon], 18);
+                }, err => {
+                    document.getElementById('status-gps').innerText = "Erro GPS";
+                }, {enableHighAccuracy: true});
             }
         }
 
-        function salvarVeiculo() {
-            const nome = document.getElementById('nome').value;
-            if(!nome || !tempFotoPerfil) return alert("Nome e Foto de Perfil são obrigatórios!");
-            
-            const novo = {
-                id: Date.now(),
-                nome,
-                tipo: tipoEscolhido.nome,
-                icone: tipoEscolhido.icone,
-                foto: tempFotoPerfil,
-                fotoTecnica: tempFotoTecnica,
-                pecas: [] // Array para pins e detalhes
+        function processarFoto(input, tipo) {
+            const file = input.files[0];
+            if(!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.src = e.target.result;
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const MAX = 400;
+                    let w = img.width, h = img.height;
+                    if (w > h) { if (w > MAX) { h *= MAX/w; w = MAX; } } else { if (h > MAX) { w *= MAX/h; h = MAX; } }
+                    canvas.width = w; canvas.height = h;
+                    canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                    const base64 = canvas.toDataURL('image/jpeg', 0.6);
+                    if(tipo === 'perfil') tempFotoPerfil = base64;
+                    else tempFotoTecnica = base64;
+                    alert("Foto Carregada!");
+                };
             };
+            reader.readAsDataURL(file);
+        }
+
+        function salvarVeiculo() {
+            const nome = document.getElementById('nome-veiculo').value;
+            if(!nome || !tempFotoPerfil) return alert("Insira o nome e a foto de perfil!");
+            const novo = { id: Date.now(), nome, tipo: tipoEscolhido.nome, icone: tipoEscolhido.icone, foto: tempFotoPerfil, fotoTecnica: tempFotoTecnica, pecas: [] };
             veiculos.push(novo);
             localStorage.setItem('veiculos', JSON.stringify(veiculos));
+            tempFotoPerfil = null; tempFotoTecnica = null;
+            document.getElementById('nome-veiculo').value = '';
             renderVeiculos();
-            // Reset
-            tempFotoPerfil = null; tempFotoTecnica = null; document.getElementById('nome').value = '';
         }
 
         function renderVeiculos() {
@@ -206,28 +214,33 @@
             container.innerHTML = '';
             veiculos.forEach((v, i) => {
                 container.innerHTML += `
-                    <div class="bg-gray-950/80 rounded-3xl border border-gray-800 overflow-hidden mb-4">
-                        <div class="flex p-4 items-center">
-                            <img src="${v.foto}" class="w-14 h-14 rounded-2xl object-cover mr-4">
-                            <div class="flex-1">
-                                <h3 class="font-black text-yellow-500 uppercase text-xs italic">${v.nome}</h3>
-                                <p class="text-[9px] text-gray-500 uppercase">${v.icone} ${v.tipo}</p>
-                            </div>
-                            <div class="flex flex-col gap-2">
-                                <button onclick="selecionar(${i})" class="bg-white text-black px-4 py-2 rounded-xl text-[9px] font-black uppercase">Usar</button>
-                                <button onclick="abrirPecas(${i})" class="bg-yellow-600 text-white px-4 py-2 rounded-xl text-[9px] font-black uppercase">🛠️ Manutenção</button>
-                            </div>
+                    <div class="bg-gray-900 rounded-3xl p-4 flex items-center border border-gray-800">
+                        <img src="${v.foto}" class="w-12 h-12 rounded-xl object-cover mr-4">
+                        <div class="flex-1">
+                            <h4 class="font-black text-yellow-500 uppercase text-xs">${v.nome}</h4>
+                            <p class="text-[9px] text-gray-500">${v.icone} ${v.tipo}</p>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="selecionar(${i})" class="bg-white text-black px-3 py-2 rounded-lg text-[9px] font-black uppercase">Usar</button>
+                            <button onclick="abrirPecas(${i})" class="bg-yellow-600 px-3 py-2 rounded-lg text-[9px] font-black uppercase">🛠️</button>
+                            <button onclick="apagarVeiculo(${i})" class="text-red-500 px-2 font-bold">X</button>
                         </div>
                     </div>`;
             });
         }
 
-        // --- GESTÃO DE PEÇAS (IDEIA SOLICITADA) ---
+        function apagarVeiculo(i) {
+            if(confirm("Apagar veículo?")) {
+                veiculos.splice(i, 1);
+                localStorage.setItem('veiculos', JSON.stringify(veiculos));
+                renderVeiculos();
+            }
+        }
+
         function abrirPecas(idx) {
             veiculoEmEdicaoIdx = idx;
             const v = veiculos[idx];
-            if(!v.fotoTecnica) return alert("Este veículo não tem Foto de Manutenção (Raio-X). Adicione uma ao criar o veículo.");
-            
+            if(!v.fotoTecnica) return alert("Adicione uma Foto Raio-X na criação do veículo para usar esta função.");
             document.getElementById('pecas-modal').style.display = 'block';
             document.getElementById('foto-tecnica-display').src = v.fotoTecnica;
             renderPins();
@@ -239,25 +252,15 @@
             const x = ((e.clientX - rect.left) / rect.width) * 100;
             const y = ((e.clientY - rect.top) / rect.height) * 100;
 
-            const nomePeca = prompt("Nome da peça/componente:");
-            if(!nomePeca) return;
-            const specs = prompt("Especificações Técnicas:");
-            const desgaste = prompt("Nível de Desgaste (0 a 100):", "0");
-            const preco = prompt("Custo estimado de troca (€):", "0");
-            const diasDuracao = prompt("Quanto tempo esta peça dura (em dias)?", "365");
+            const nome = prompt("Nome da Peça:");
+            if(!nome) return;
+            const desgaste = prompt("Desgaste % (0-100):", "0");
+            const dias = prompt("Duração em dias:", "365");
+            const preco = prompt("Preço estimado (€):", "0");
 
-            const novaPeca = {
-                id: Date.now(),
-                x, y,
-                nome: nomePeca,
-                specs,
-                desgaste: parseInt(desgaste),
-                preco,
-                dataInstalacao: new Date().getTime(),
-                validadeDias: parseInt(diasDuracao)
-            };
-
-            veiculos[veiculoEmEdicaoIdx].pecas.push(novaPeca);
+            veiculos[veiculoEmEdicaoIdx].pecas.push({
+                x, y, nome, desgaste: parseInt(desgaste), preco, validadeDias: parseInt(dias), data: Date.now()
+            });
             localStorage.setItem('veiculos', JSON.stringify(veiculos));
             renderPins();
         }
@@ -266,78 +269,82 @@
             const v = veiculos[veiculoEmEdicaoIdx];
             const overlay = document.getElementById('pins-overlay');
             const lista = document.getElementById('lista-detalhes-pecas');
-            overlay.innerHTML = '';
-            lista.innerHTML = '';
+            overlay.innerHTML = ''; lista.innerHTML = '';
 
             v.pecas.forEach((p, i) => {
-                // Adiciona Pin na Foto
-                overlay.innerHTML += `<div class="pin" style="left: ${p.x}%; top: ${p.y}%;">${i+1}</div>`;
+                overlay.innerHTML += `<div class="pin" style="left:${p.x}%; top:${p.y}%">${i+1}</div>`;
+                const expira = new Date(p.data + (p.validadeDias * 86400000));
+                const resto = Math.ceil((expira - Date.now()) / 86400000);
                 
-                // Calcula Data de Expiração
-                const expiraEm = new Date(p.dataInstalacao + (p.validadeDias * 86400000));
-                const hoje = new Date();
-                const diasRestantes = Math.ceil((expiraEm - hoje) / 86400000);
-
-                // Adiciona Card Detalhado
                 lista.innerHTML += `
-                    <div class="bg-gray-900 border-l-4 ${p.desgaste > 80 ? 'border-red-500' : 'border-green-500'} p-4 rounded-xl relative">
-                        <div class="flex justify-between items-start mb-2">
-                            <h4 class="font-black text-white text-sm uppercase">${i+1}. ${p.nome}</h4>
-                            <span class="text-[10px] font-bold text-yellow-500">${p.preco}€</span>
+                    <div class="bg-gray-900 p-4 rounded-xl border-l-4 ${p.desgaste > 70 ? 'border-red-500' : 'border-green-500'}">
+                        <div class="flex justify-between font-black text-xs uppercase mb-2">
+                            <span>${i+1}. ${p.nome}</span>
+                            <span class="text-yellow-500">${p.preco}€</span>
                         </div>
-                        <p class="text-[10px] text-gray-500 mb-3">${p.specs}</p>
-                        
-                        <div class="space-y-2">
-                            <div class="flex justify-between text-[9px] uppercase font-bold">
-                                <span>Desgaste</span>
-                                <span>${p.desgaste}%</span>
-                            </div>
-                            <div class="w-full h-1.5 bg-gray-800 rounded-full overflow-hidden">
-                                <div class="h-full bg-red-500" style="width: ${p.desgaste}%"></div>
-                            </div>
-                            <div class="flex justify-between items-center mt-2">
-                                <span class="text-[9px] text-gray-400">Trocar em: <b class="text-white">${diasRestantes} dias</b></span>
-                                <button onclick="removerPeca(${i})" class="text-[8px] text-red-500 uppercase font-bold">Remover</button>
-                            </div>
+                        <div class="w-full h-1 bg-gray-800 rounded-full mb-2">
+                            <div class="h-full bg-red-500" style="width:${p.desgaste}%"></div>
+                        </div>
+                        <div class="flex justify-between text-[9px] text-gray-500 uppercase">
+                            <span>Vida útil: ${resto} dias restantes</span>
+                            <button onclick="removerPeca(${i})" class="text-red-500">Apagar</button>
                         </div>
                     </div>`;
             });
         }
 
-        function removerPeca(idx) {
-            if(confirm("Eliminar registo desta peça?")) {
-                veiculos[veiculoEmEdicaoIdx].pecas.splice(idx, 1);
-                localStorage.setItem('veiculos', JSON.stringify(veiculos));
-                renderPins();
+        function removerPeca(i) {
+            veiculos[veiculoEmEdicaoIdx].pecas.splice(i, 1);
+            localStorage.setItem('veiculos', JSON.stringify(veiculos));
+            renderPins();
+        }
+
+        function selecionar(i) {
+            const v = veiculos[i];
+            document.getElementById('veiculo-atual-nome').innerText = v.nome;
+            updateMarkerIcon(v.icone);
+            showTab('dash');
+            recentralizar();
+        }
+
+        function salvarViagemManual() {
+            if(totalDist < 0.1) return alert("Viagem muito curta.");
+            if(confirm("Finalizar e Salvar?")) {
+                const v = { data: new Date().toLocaleString(), dist: (totalDist/1000).toFixed(2), tempo: document.getElementById('time-display').innerText, veiculo: document.getElementById('veiculo-atual-nome').innerText, logs: [...logsVelocidade] };
+                historico.unshift(v);
+                localStorage.setItem('historico', JSON.stringify(historico.slice(0, 20)));
+                location.reload();
             }
         }
 
-        function fecharPecas() { document.getElementById('pecas-modal').style.display = 'none'; }
-
-        // --- MAPA E TRACKING (MANTIDOS) ---
-        function initMap() {
-            map = L.map('map', { zoomControl: false, attributionControl: false }).setView([0, 0], 2);
-            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
-            polyline = L.polyline([], {color: '#3b82f6', weight: 4}).addTo(map);
-            updateMarkerIcon('📍');
+        function renderHistorico() {
+            const container = document.getElementById('historico-viagens');
+            container.innerHTML = '';
+            historico.forEach((v, i) => {
+                container.innerHTML += `
+                    <div class="bg-gray-900/50 p-4 rounded-2xl border border-gray-800 flex justify-between items-center">
+                        <div><p class="text-[9px] font-black text-yellow-500 uppercase">${v.veiculo}</p><p class="text-white font-bold text-sm">${v.dist} KM - ${v.tempo}</p></div>
+                        <button onclick="abrirGrafico(${i})" class="text-[10px] bg-gray-800 px-3 py-2 rounded-lg font-bold">📊</button>
+                    </div>`;
+            });
         }
 
-        function startTracking() {
-            navigator.geolocation.watchPosition(pos => {
-                const acc = pos.coords.accuracy;
-                if(acc > 30) return;
-                currentSpeed = pos.coords.speed ? pos.coords.speed * 3.6 : 0;
-                userLat = pos.coords.latitude; userLon = pos.coords.longitude;
-                
-                document.getElementById('vel-display').innerText = currentSpeed.toFixed(0);
-                document.getElementById('vel-lock').innerText = currentSpeed.toFixed(0);
-                
-                if(currentSpeed > maxSpeed) {
-                    maxSpeed = currentSpeed;
-                    document.getElementById('max-vel-display').innerText = maxSpeed.toFixed(0);
-                }
+        function abrirGrafico(i) {
+            document.getElementById('chart-modal').style.display = 'flex';
+            const ctx = document.getElementById('speedChart').getContext('2d');
+            if(speedChart) speedChart.destroy();
+            speedChart = new Chart(ctx, { type: 'line', data: { labels: historico[i].logs.map((_, x) => x+"s"), datasets: [{ label: 'KM/H', data: historico[i].logs, borderColor: '#eab308', tension: 0.3 }] }, options: { responsive: true, maintainAspectRatio: false } });
+        }
 
-                if(lastCoord && currentSpeed > 1) {
-                    let d = map.distance([userLat, userLon], [lastCoord.lat, lastCoord.lon]);
-                    totalDist += d;
-                    document.getElementById('dist-display').innerText = (totalDist / 1
+        function fecharGrafico() { document.getElementById('chart-modal').style.display = 'none'; }
+        function fecharPecas() { document.getElementById('pecas-modal').style.display = 'none'; }
+        function showTab(id) { document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active')); document.getElementById(id).classList.add('active'); if(id === 'dash') setTimeout(() => map.invalidateSize(), 200); }
+        function updateTimer() { let d = Math.floor((Date.now() - startTime) / 1000); let h = Math.floor(d/3600).toString().padStart(2,'0'), m = Math.floor((d%3600)/60).toString().padStart(2,'0'), s = (d%60).toString().padStart(2,'0'); document.getElementById('time-display').innerText = `${h}:${m}:${s}`; }
+        function updateMarkerIcon(i) { if(marker) map.removeLayer(marker); marker = L.marker([userLat, userLon], { icon: L.divIcon({ className: 'custom-marker', html: i, iconSize: [48, 48] }) }).addTo(map); }
+        function activarBloqueio() { document.getElementById('lock-screen').style.display = 'flex'; }
+        function confirmarDesbloqueio() { if(confirm("Desbloquear?")) document.getElementById('lock-screen').style.display = 'none'; }
+        function recentralizar() { autoCenter = true; map.flyTo([userLat, userLon], 18); }
+        function setTipo(n, i) { tipoEscolhido = { nome: n, icone: i }; document.querySelectorAll('.tipo-btn').forEach(b => b.classList.remove('active')); event.currentTarget.classList.add('active'); }
+    </script>
+</body>
+</html>
