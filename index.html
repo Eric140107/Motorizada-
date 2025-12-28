@@ -3,122 +3,156 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AutoMonitor Ultra - Glass Neon Full</title>
+    <title>AutoMonitor Ultra - Glass Neon Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        :root { --neon: #eab308; --glass: rgba(255, 255, 255, 0.05); --blur: blur(15px); }
-        html, body { background: #000; color: #fff; height: 100%; margin: 0; overflow: hidden; font-family: sans-serif; touch-action: none; }
+        :root { --neon: #eab308; --glass: rgba(255, 255, 255, 0.08); --blur: blur(20px); }
         
-        #map { position: fixed; inset: 0; z-index: 1; filter: grayscale(1) brightness(0.4); }
-        .tab-content { display: none; height: 100vh; width: 100vw; overflow-y: auto; padding: 20px; padding-bottom: 120px; position: relative; z-index: 50; }
-        .tab-content.active { display: block; animation: slideUp 0.4s ease-out; }
-        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        html, body { background: #000; color: #fff; height: 100%; margin: 0; overflow: hidden; font-family: 'Inter', sans-serif; }
+        
+        /* MAPA FUNDO */
+        #map { position: fixed; inset: 0; z-index: 1; filter: grayscale(1) brightness(0.3); }
 
-        .glass { background: var(--glass); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); border: 1px solid rgba(255,255,255,0.1); border-radius: 24px; }
+        /* ESTRUTURA DE ABAS */
+        .tab-content { display: none; height: 100vh; width: 100vw; overflow-y: auto; padding: 20px; padding-bottom: 140px; position: relative; z-index: 50; }
+        .tab-content.active { display: block; animation: slideUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.1); }
         
-        /* VELOCIMETRO ARCO */
-        .speed-container { position: relative; width: 200px; height: 200px; display: flex; align-items: center; justify-content: center; }
+        @keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+        /* GLASSMORPHISM */
+        .glass { 
+            background: var(--glass); 
+            backdrop-filter: var(--blur); 
+            -webkit-backdrop-filter: var(--blur);
+            border: 1px solid rgba(255,255,255,0.12); 
+            border-radius: 28px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.7);
+        }
+
+        /* VELOCÍMETRO ARCO (IDEIA 5) */
+        .speed-container { position: relative; width: 210px; height: 210px; display: flex; align-items: center; justify-content: center; }
         #speed-svg { position: absolute; width: 100%; height: 100%; transform: rotate(-90deg); }
-        #speed-bar { fill: none; stroke: var(--neon); stroke-width: 8; stroke-dasharray: 440; stroke-dashoffset: 440; transition: 0.3s; stroke-linecap: round; }
-        #speed-bg { fill: none; stroke: rgba(255,255,255,0.05); stroke-width: 8; }
+        #speed-bar { fill: none; stroke: var(--neon); stroke-width: 10; stroke-dasharray: 440; stroke-dashoffset: 440; transition: stroke-dashoffset 0.3s ease; stroke-linecap: round; filter: drop-shadow(0 0 5px var(--neon)); }
+        #speed-bg { fill: none; stroke: rgba(255,255,255,0.05); stroke-width: 10; }
 
-        /* RAIO-X ESTILIZADO */
-        #foto-tecnica-viewport { position: relative; width: 100%; aspect-ratio: 16/9; overflow: hidden; border-radius: 20px; background: #050505; border: 1px solid #222; touch-action: none; }
+        /* NAVBAR (REVISADA) */
+        nav { 
+            position: fixed; bottom: 25px; left: 20px; right: 20px; height: 75px; 
+            display: flex; justify-content: space-around; align-items: center; 
+            z-index: 5000; background: rgba(20, 20, 20, 0.8);
+            backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 25px;
+        }
+        nav button { flex: 1; display: flex; flex-direction: column; align-items: center; transition: 0.3s; }
+
+        /* RAIO-X VIEWPORT */
+        #foto-tecnica-viewport { position: relative; width: 100%; aspect-ratio: 16/9; overflow: hidden; border-radius: 24px; background: #080808; border: 1px solid #222; touch-action: none; }
         #foto-tecnica-canvas { position: absolute; transform-origin: 0 0; width: 100%; height: 100%; pointer-events: none; }
-        .pin-micro { position: absolute; width: 10px; height: 10px; border-radius: 50%; transform: translate(-50%, -50%); border: 2px solid white; z-index: 20; box-shadow: 0 0 10px rgba(0,0,0,0.5); }
-        
-        #peca-drawer { position: fixed; top: 0; bottom: 0; right: 0; width: 85%; max-width: 320px; transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); z-index: 2000; box-shadow: -15px 0 50px #000; }
-        #peca-drawer.open { transform: translateX(0); }
+        .pin-micro { position: absolute; width: 12px; height: 12px; border-radius: 50%; transform: translate(-50%, -50%); border: 2px solid white; box-shadow: 0 0 10px var(--neon); }
 
-        .btn-interact:active { transform: scale(0.95); filter: brightness(1.2); }
-        .custom-marker { display: flex; align-items: center; justify-content: center; font-size: 26px; background: rgba(234, 179, 8, 0.2); border: 2px solid var(--neon); border-radius: 50%; width: 48px !important; height: 48px !important; box-shadow: 0 0 15px var(--neon); }
+        /* BENTO BOX CARDS */
+        .bento-card { padding: 16px; display: flex; flex-direction: column; justify-content: center; }
+
+        /* BOTÕES INTERATIVOS (IDEIA 6) */
+        .btn-interact { transition: all 0.2s ease; }
+        .btn-interact:active { transform: scale(0.92); filter: brightness(1.3); }
+
+        .custom-marker { font-size: 24px; display: flex; align-items: center; justify-content: center; background: rgba(234, 179, 8, 0.2); border: 2px solid var(--neon); border-radius: 50%; box-shadow: 0 0 15px var(--neon); width: 45px !important; height: 45px !important; }
     </style>
 </head>
 <body>
 
     <div id="lock-screen" class="hidden fixed inset-0 z-[9999] bg-black flex flex-col items-center justify-center">
         <div class="speed-container">
-            <svg id="speed-svg" viewBox="0 0 160 160"><circle id="speed-bg" cx="80" cy="80" r="70"></circle><circle id="speed-bar" class="lock-bar" cx="80" cy="80" r="70"></circle></svg>
+            <svg id="speed-svg" viewBox="0 0 160 160"><circle id="speed-bg" cx="80" cy="80" r="70"></circle><circle id="speed-bar" class="l-bar" cx="80" cy="80" r="70"></circle></svg>
             <span id="vel-lock" class="text-7xl font-black">0</span>
         </div>
-        <button onclick="desbloquear()" class="btn-interact mt-12 w-20 h-20 glass flex items-center justify-center text-3xl">🔒</button>
+        <button onclick="desbloquear()" class="btn-interact mt-12 w-20 h-20 glass flex items-center justify-center text-3xl border-white/20">🔓</button>
     </div>
 
-    <div id="chart-modal" class="hidden fixed inset-0 z-[600] bg-black/95 p-6 overflow-y-auto">
-        <div class="flex justify-between items-center mb-6">
-            <h3 class="text-yellow-500 font-black uppercase text-xs">Telemetria Detalhada</h3>
-            <button onclick="document.getElementById('chart-modal').style.display='none'" class="glass px-4 py-2 text-[10px]">FECHAR</button>
-        </div>
-        <div class="h-64 glass p-4 mb-4"><canvas id="speedChart"></canvas></div>
-        <div id="stats-hist" class="grid grid-cols-2 gap-4"></div>
-    </div>
-
-    <div id="pecas-modal" class="hidden fixed inset-0 z-[500] bg-black p-4 overflow-y-auto">
+    <div id="pecas-modal" class="hidden fixed inset-0 z-[2000] bg-black p-4 overflow-y-auto">
         <div class="flex justify-between items-center mb-4">
-            <h3 class="text-yellow-500 font-black uppercase text-xs">Raio-X Técnico</h3>
-            <button onclick="fecharPecas()" class="glass px-4 py-2 text-[10px]">SAIR</button>
+            <h3 class="text-yellow-500 font-black uppercase text-xs tracking-widest">Raio-X Técnico</h3>
+            <button onclick="fecharPecas()" class="glass px-5 py-2 text-[10px] font-bold">FECHAR</button>
         </div>
-        <div id="foto-tecnica-viewport" class="mb-4">
+        <div id="foto-tecnica-viewport" class="glass">
             <div id="foto-tecnica-canvas">
                 <img id="foto-tecnica-img" class="w-full h-full object-contain">
                 <div id="pins-container" class="absolute inset-0"></div>
             </div>
         </div>
-        <div id="lista-pecas-raiox" class="space-y-2 pb-20"></div>
+        <p class="text-[9px] text-gray-500 mt-2 italic text-center">Use dois dedos para zoom e arraste para mover</p>
+        <div id="lista-pecas-raiox" class="mt-6 space-y-3 pb-24"></div>
         
-        <div id="peca-drawer" class="glass p-8 flex flex-col">
-            <h4 class="text-yellow-500 font-black uppercase mb-8">Novo Componente</h4>
-            <div class="space-y-4 flex-1">
-                <input type="text" id="n-p" placeholder="Nome" class="w-full bg-white/5 p-4 rounded-xl">
-                <input type="number" id="c-p" placeholder="Preço R$" class="w-full bg-white/5 p-4 rounded-xl">
-                <input type="range" id="d-p" min="0" max="100" class="w-full accent-yellow-500">
-            </div>
-            <button onclick="confirmarPeca()" class="w-full bg-yellow-500 text-black p-4 rounded-xl font-black mt-4">SALVAR</button>
-            <button onclick="fecharDrawer()" class="w-full p-4 text-gray-500 text-xs">CANCELAR</button>
+        <div id="peca-drawer" class="fixed inset-y-0 right-0 w-80 glass m-2 translate-x-[110%] transition-transform duration-300 z-[2100] p-6 flex flex-col">
+            <h4 class="text-yellow-500 font-black mb-6">NOVA PEÇA</h4>
+            <input type="text" id="n-p" placeholder="Nome do Componente" class="bg-white/5 border border-white/10 p-4 rounded-xl mb-4 w-full outline-none focus:border-yellow-500">
+            <input type="number" id="c-p" placeholder="Custo R$" class="bg-white/5 border border-white/10 p-4 rounded-xl mb-4 w-full outline-none">
+            <label class="text-[10px] text-gray-400 mb-2 font-bold uppercase">Estado de Conservação</label>
+            <input type="range" id="d-p" class="w-full accent-yellow-500 mb-8">
+            <button onclick="confirmarPeca()" class="bg-yellow-500 text-black p-4 rounded-2xl font-black uppercase text-xs btn-interact">Confirmar</button>
+            <button onclick="fecharDrawer()" class="p-4 text-gray-500 text-[10px] font-bold">CANCELAR</button>
         </div>
     </div>
 
     <main id="dash" class="tab-content active">
         <div id="map"></div>
         <div class="relative z-[60] grid grid-cols-2 gap-4">
-            <div class="glass p-6 col-span-2 flex justify-center">
+            <div class="glass col-span-2 flex justify-center py-8">
                 <div class="speed-container">
-                    <svg id="speed-svg" viewBox="0 0 160 160"><circle id="speed-bg" cx="80" cy="80" r="70"></circle><circle id="speed-bar" class="dash-bar" cx="80" cy="80" r="70"></circle></svg>
-                    <div class="text-center"><span id="vel-display" class="text-6xl font-black">0</span><p class="text-[10px] text-gray-500">KM/H</p></div>
+                    <svg id="speed-svg" viewBox="0 0 160 160"><circle id="speed-bg" cx="80" cy="80" r="70"></circle><circle id="speed-bar" cx="80" cy="80" r="70"></circle></svg>
+                    <div class="text-center">
+                        <span id="vel-display" class="text-7xl font-black italic">0</span>
+                        <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest">KM/H</p>
+                    </div>
                 </div>
             </div>
-            <div class="glass p-4"><p class="text-[9px] text-gray-500 uppercase">Distância</p><p id="dist-txt" class="text-xl font-bold">0.00 KM</p></div>
-            <div class="glass p-4"><p class="text-[9px] text-yellow-500 uppercase">Veículo</p><p id="v-txt" class="text-sm font-bold truncate">Selecione...</p></div>
+            <div class="glass bento-card">
+                <p class="text-[9px] text-gray-500 uppercase font-black">Trajeto Atual</p>
+                <p id="dist-txt" class="text-2xl font-bold">0.00 <span class="text-xs text-yellow-500">KM</span></p>
+            </div>
+            <div class="glass bento-card">
+                <p class="text-[9px] text-yellow-500 uppercase font-black">Status do Veículo</p>
+                <p id="v-txt" class="text-sm font-bold truncate">Nenhum Selecionado</p>
+            </div>
         </div>
+
         <div class="fixed bottom-32 right-6 flex flex-col gap-4 z-[60]">
-            <button onclick="bloquear()" class="glass btn-interact w-14 h-14 flex items-center justify-center border-red-500/30">🔒</button>
-            <button onclick="finalizarViagem()" class="glass btn-interact w-14 h-14 flex items-center justify-center border-green-500/30">🏁</button>
-            <button onclick="recentralizar()" class="glass btn-interact w-14 h-14 flex items-center justify-center border-yellow-500/30">📍</button>
+            <button onclick="bloquear()" class="glass btn-interact w-14 h-14 flex items-center justify-center text-xl border-red-500/20">🔒</button>
+            <button onclick="finalizarViagem()" class="glass btn-interact w-14 h-14 flex items-center justify-center text-xl border-green-500/20">🏁</button>
+            <button onclick="recentralizar()" class="glass btn-interact w-14 h-14 flex items-center justify-center text-xl border-yellow-500/20">📍</button>
         </div>
     </main>
 
-    <main id="garagem" class="tab-content glass m-4">
-        <div class="p-6">
-            <h2 class="text-xl font-black mb-6 italic">GARAGEM</h2>
-            <div class="glass p-6 space-y-4 mb-8">
-                <input type="text" id="g-nome" placeholder="Veículo" class="w-full bg-white/5 p-4 rounded-xl outline-none">
-                <div class="grid grid-cols-2 gap-2">
-                    <button onclick="document.getElementById('f-p').click()" class="bg-white/10 p-3 rounded-xl text-[10px] font-bold">FOTO PERFIL</button>
-                    <button onclick="document.getElementById('f-t').click()" class="bg-yellow-500/20 text-yellow-500 p-3 rounded-xl text-[10px] font-bold">FOTO RAIO-X</button>
+    <main id="garagem" class="tab-content">
+        <div class="p-2">
+            <h2 class="text-2xl font-black italic mb-6 tracking-tighter">MINHA GARAGEM</h2>
+            <div class="glass p-6 mb-8">
+                <input type="text" id="g-nome" placeholder="Modelo do Veículo" class="w-full bg-white/5 p-4 rounded-xl mb-4 outline-none border border-white/5 focus:border-yellow-500">
+                <div class="grid grid-cols-2 gap-3 mb-4">
+                    <button onclick="document.getElementById('f-p').click()" class="bg-white/10 p-4 rounded-xl text-[9px] font-black uppercase">Foto Perfil</button>
+                    <button onclick="document.getElementById('f-t').click()" class="bg-yellow-500/10 text-yellow-500 p-4 rounded-xl text-[9px] font-black uppercase">Foto Raio-X</button>
                 </div>
-                <button onclick="addVeiculo()" class="w-full bg-yellow-500 text-black p-4 rounded-xl font-black text-xs">ADICIONAR</button>
+                <button onclick="addVeiculo()" class="w-full bg-yellow-500 text-black p-4 rounded-xl font-black uppercase text-xs btn-interact">Registrar Veículo</button>
             </div>
             <div id="lista-garagem" class="space-y-4"></div>
-            <h3 class="text-[10px] font-black text-gray-500 mt-10 mb-4 uppercase">Histórico de Telemetria</h3>
-            <div id="lista-historico" class="space-y-3 pb-20"></div>
+            <h3 class="text-[10px] font-black text-gray-600 mt-12 mb-4 uppercase tracking-[0.2em]">Histórico de Viagens</h3>
+            <div id="lista-historico" class="space-y-3 pb-24"></div>
         </div>
     </main>
 
-    <nav class="glass mx-4 mb-4">
-        <button onclick="showTab('dash')" class="btn-interact text-[10px] font-black text-yellow-500">DASHBOARD</button>
-        <button onclick="showTab('garagem')" class="btn-interact text-[10px] font-black text-gray-500">GARAGEM</button>
+    <nav>
+        <button onclick="showTab('dash')" class="btn-interact">
+            <span id="nav-dash-icon" class="text-2xl transition-all">🏎️</span>
+            <span id="nav-dash-text" class="text-[9px] font-black mt-1 text-yellow-500 uppercase tracking-widest">Dashboard</span>
+        </button>
+        <div class="w-px h-8 bg-white/10"></div>
+        <button onclick="showTab('garagem')" class="btn-interact">
+            <span id="nav-garagem-icon" class="text-2xl opacity-40 transition-all">📂</span>
+            <span id="nav-garagem-text" class="text-[9px] font-black mt-1 text-gray-500 uppercase tracking-widest">Garagem</span>
+        </button>
     </nav>
 
     <input type="file" id="f-p" class="hidden" onchange="subirFoto(this,'p')">
@@ -129,25 +163,33 @@
         let map, marker, polyline, userLat=0, userLon=0, veiculos = JSON.parse(localStorage.getItem('veiculos') || '[]');
         let historico = JSON.parse(localStorage.getItem('historico') || '[]');
         let tSel = { n:'Carro', i:'🚗' }, tempP, tempT, vIdx = null, logSegundos = [];
-        let route = [], currentSpeed=0, totalDist=0, lastCoord=null, chart;
-        let sc=1, px=0, py=0, evH=[], pD=-1, sx, sy, isP=false, pX, pY, isZooming = false;
+        let route = [], currentSpeed=0, totalDist=0, lastCoord=null;
+        
+        // --- LÓGICA DO RAIO-X (ZOOM & PAN) ---
+        let sc=1, px=0, py=0, evH=[], pD=-1, sx, sy, isP=false, pX, pY, isZooming=false;
+        const vp=document.getElementById('foto-tecnica-viewport'), cv=document.getElementById('foto-tecnica-canvas');
 
         window.onload = () => {
             map = L.map('map',{zoomControl:false, attributionControl:false}).setView([0,0],2);
             L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
-            polyline = L.polyline([], {color:'#eab308', weight:4}).addTo(map);
+            polyline = L.polyline([], {color:'#eab308', weight:5, opacity:0.8}).addTo(map);
             
             navigator.geolocation.watchPosition(pos => {
                 userLat = pos.coords.latitude; userLon = pos.coords.longitude;
                 currentSpeed = pos.coords.speed ? pos.coords.speed * 3.6 : 0;
-                atualizarInterface(currentSpeed);
                 
-                if(currentSpeed > 0.5) {
+                const vel = Math.round(currentSpeed);
+                document.getElementById('vel-display').innerText = vel;
+                document.getElementById('vel-lock').innerText = vel;
+                const offset = 440 - (Math.min(vel, 160) / 160) * 440;
+                document.querySelectorAll('#speed-bar').forEach(el => el.style.strokeDashoffset = offset);
+
+                if(currentSpeed > 0.8) {
                     if(lastCoord) totalDist += map.distance([userLat, userLon], [lastCoord.lat, lastCoord.lon]);
                     route.push([userLat, userLon]);
                     polyline.setLatLngs(route);
-                    logSegundos.push({h: new Date().toLocaleTimeString('pt-BR'), v: currentSpeed.toFixed(1), lt: userLat.toFixed(6), lg: userLon.toFixed(6)});
-                    document.getElementById('dist-txt').innerText = (totalDist/1000).toFixed(2) + " KM";
+                    logSegundos.push({h: new Date().toLocaleTimeString('pt-BR'), v: currentSpeed.toFixed(1)});
+                    document.getElementById('dist-txt').innerHTML = `${(totalDist/1000).toFixed(2)} <span class="text-xs text-yellow-500">KM</span>`;
                 }
                 lastCoord = {lat:userLat, lon:userLon};
                 if(!marker) {
@@ -155,63 +197,78 @@
                     map.setView([userLat,userLon], 18);
                 } else { marker.setLatLng([userLat,userLon]); }
             }, null, {enableHighAccuracy:true});
-            renderGaragem(); renderHistorico();
+
+            initRaioX(); renderGaragem(); renderHistorico();
         };
 
-        function atualizarInterface(v) {
-            const vel = Math.round(v);
-            document.getElementById('vel-display').innerText = vel;
-            document.getElementById('vel-lock').innerText = vel;
-            const offset = 440 - (Math.min(vel, 160) / 160) * 440;
-            document.querySelectorAll('#speed-bar').forEach(el => el.style.strokeDashoffset = offset);
+        function showTab(id){ 
+            document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active')); 
+            document.getElementById(id).classList.add('active'); 
+            const isDash = id === 'dash';
+            document.getElementById('nav-dash-text').className = isDash ? 'text-[9px] font-black mt-1 text-yellow-500 uppercase tracking-widest' : 'text-[9px] font-black mt-1 text-gray-500 uppercase tracking-widest';
+            document.getElementById('nav-garagem-text').className = !isDash ? 'text-[9px] font-black mt-1 text-yellow-500 uppercase tracking-widest' : 'text-[9px] font-black mt-1 text-gray-500 uppercase tracking-widest';
+            document.getElementById('nav-dash-icon').style.opacity = isDash ? '1' : '0.4';
+            document.getElementById('nav-garagem-icon').style.opacity = !isDash ? '1' : '0.4';
+            if(isDash) map.invalidateSize();
         }
 
-        // --- RAIO-X LOGIC ---
-        const vp=document.getElementById('foto-tecnica-viewport'), cv=document.getElementById('foto-tecnica-canvas');
-        vp.addEventListener('pointerdown', e=>{ evH.push(e); isP=true; sx=e.clientX-px; sy=e.clientY-py; if(evH.length >= 2) isZooming = true; });
-        vp.addEventListener('pointermove', e=>{
-            const idx=evH.findIndex(v=>v.pointerId===e.pointerId); evH[idx]=e;
-            if(evH.length===2){ isZooming = true; const c=Math.hypot(evH[0].clientX-evH[1].clientX, evH[0].clientY-evH[1].clientY); if(pD>0) sc=Math.min(Math.max(1,sc*(c/pD)),6); pD=c; }
-            else if(isP && evH.length===1){ px=e.clientX-sx; py=e.clientY-sy; }
-            cv.style.transform=`translate(${px}px,${py}px) scale(${sc})`;
-        });
-        vp.addEventListener('pointerup', e=>{
-            const moveu = Math.abs(e.clientX-sx-px) > 10;
-            if(!isZooming && evH.length === 1 && !moveu){ const r=vp.getBoundingClientRect(); pX=(e.clientX-r.left-px)/sc; pY=(e.clientY-r.top-py)/sc; document.getElementById('peca-drawer').classList.add('open'); }
-            evH=evH.filter(v=>v.pointerId!==e.pointerId); if(evH.length<1) { isZooming = false; pD=-1; isP=false; }
-        });
-
-        function abrirRaioX(i){ vIdx=i; document.getElementById('pecas-modal').style.display='block'; document.getElementById('foto-tecnica-img').src=veiculos[i].fotoTecnica; sc=1; px=0; py=0; cv.style.transform=`scale(1)`; renderPins(); renderListaPecas(); }
-        function confirmarPeca(){ veiculos[vIdx].pecas.push({x:pX,y:pY,nome:document.getElementById('n-p').value,custo:document.getElementById('c-p').value,desgaste:document.getElementById('d-p').value}); localStorage.setItem('veiculos',JSON.stringify(veiculos)); fecharDrawer(); renderPins(); renderListaPecas(); }
-        function renderPins(){ const c=document.getElementById('pins-container'); c.innerHTML=''; veiculos[vIdx].pecas.forEach(p=>{ const cor=p.desgaste>90?'#f00':'#eab308'; c.innerHTML+=`<div class="pin-micro" style="left:${p.x}px;top:${p.y}px;background:${cor}"></div>`;}); }
-        function renderListaPecas(){ const l=document.getElementById('lista-pecas-raiox'); l.innerHTML=''; veiculos[vIdx].pecas.forEach((p,i)=>{ l.innerHTML+=`<div class="glass p-4 flex justify-between items-center"><span class="text-xs uppercase font-bold">${p.nome}</span><button onclick="removeP(${i})" class="text-red-500">X</button></div>`; });}
-        function removeP(i){ veiculos[vIdx].pecas.splice(i,1); localStorage.setItem('veiculos',JSON.stringify(veiculos)); renderPins(); renderListaPecas(); }
-        function fecharPecas(){ document.getElementById('pecas-modal').style.display='none'; }
-        function fecharDrawer(){ document.getElementById('peca-drawer').classList.remove('open'); }
-
-        // --- GARAGEM E HISTORICO ---
-        function subirFoto(i,t) { const r = new FileReader(); r.onload=(e)=>{ if(t==='p') tempP=e.target.result; else tempT=e.target.result; }; r.readAsDataURL(i.files[0]); }
-        function addVeiculo() { const n=document.getElementById('g-nome').value; if(!n||!tempP) return alert("Faltam dados!"); veiculos.push({nome:n, foto:tempP, fotoTecnica:tempT, pecas:[], icone:'🚗'}); localStorage.setItem('veiculos', JSON.stringify(veiculos)); renderGaragem(); }
-        function renderGaragem() { const c=document.getElementById('lista-garagem'); c.innerHTML=''; veiculos.forEach((v,i)=>{ c.innerHTML += `<div class="glass p-4 flex items-center mb-2"><img src="${v.foto}" class="w-12 h-12 rounded-xl object-cover mr-4"><div class="flex-1 text-xs font-bold text-yellow-500 uppercase">${v.nome}</div><button onclick="selV(${i})" class="bg-white text-black px-3 py-2 rounded-lg text-[9px] mr-1">USAR</button><button onclick="abrirRaioX(${i})" class="bg-yellow-500 text-black px-3 py-2 rounded-lg text-[9px]">RAIO-X</button></div>`; }); }
-        function selV(i) { vIdx=i; document.getElementById('v-txt').innerText=veiculos[i].nome; showTab('dash'); }
-        
-        function finalizarViagem(){ if(totalDist<100) return alert("Curta demais."); historico.unshift({data:new Date().toLocaleString('pt-BR'), km:(totalDist/1000).toFixed(2), detalhes:[...logSegundos]}); localStorage.setItem('historico',JSON.stringify(historico.slice(0,20))); location.reload(); }
-        function renderHistorico(){ const h=document.getElementById('lista-historico'); h.innerHTML=''; historico.forEach((v,i)=>{ h.innerHTML+=`<div class="glass p-4 flex justify-between items-center"><span class="text-[9px] font-bold text-gray-500">${v.data} | ${v.km} KM</span><div class="flex gap-2"><button onclick="verGrafico(${i})" class="text-yellow-500">📊</button><button onclick="baixarCSV(${i})" class="text-blue-500">📥</button></div></div>`; }); }
-        function baixarCSV(i){ const v = historico[i]; let csv = "Hora;KMH;Lat;Lon\n"; v.detalhes.forEach(d=>{ csv += `${d.h};${d.v};${d.lt};${d.lg}\n`; }); const blob = new Blob([csv], {type:'text/csv'}); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `caixa_preta_${v.data.replace(/[/ :]/g,'_')}.csv`; a.click(); }
-        
-        function verGrafico(i){
-            const v = historico[i]; document.getElementById('chart-modal').style.display = 'block';
-            if(chart) chart.destroy();
-            chart = new Chart(document.getElementById('speedChart').getContext('2d'), {
-                type:'line', data:{ labels: v.detalhes.map(d=>d.h), datasets:[{label:'KM/H', data: v.detalhes.map(d=>d.v), borderColor:'#eab308', fill:true, backgroundColor:'rgba(234,179,8,0.1)', pointRadius:1}] },
-                options:{ responsive:true, maintainAspectRatio:false, plugins:{ tooltip:{callbacks:{label:(c)=>`Vel: ${v.detalhes[c.dataIndex].v} km/h`}} }, scales:{x:{display:false}} }
+        // --- RAIO-X CORE ---
+        function initRaioX(){
+            vp.addEventListener('pointerdown', e=>{ evH.push(e); isP=true; sx=e.clientX-px; sy=e.clientY-py; if(evH.length>=2) isZooming=true; });
+            vp.addEventListener('pointermove', e=>{
+                const i=evH.findIndex(v=>v.pointerId===e.pointerId); evH[i]=e;
+                if(evH.length===2){ const c=Math.hypot(evH[0].clientX-evH[1].clientX, evH[0].clientY-evH[1].clientY); if(pD>0) sc=Math.min(Math.max(1,sc*(c/pD)),6); pD=c; }
+                else if(isP && !isZooming){ px=e.clientX-sx; py=e.clientY-sy; }
+                cv.style.transform=`translate(${px}px,${py}px) scale(${sc})`;
+            });
+            vp.addEventListener('pointerup', e=>{
+                const moveu = Math.abs(e.clientX-sx-px) > 5;
+                if(!isZooming && evH.length===1 && !moveu){ 
+                    const r=vp.getBoundingClientRect(); 
+                    pX=(e.clientX-r.left-px)/sc; pY=(e.clientY-r.top-py)/sc; 
+                    document.getElementById('peca-drawer').style.transform='translateX(0)';
+                }
+                evH=evH.filter(v=>v.pointerId!==e.pointerId); if(evH.length<1){ isZooming=false; pD=-1; isP=false; }
             });
         }
 
-        function showTab(id){ document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active')); document.getElementById(id).classList.add('active'); if(id==='dash') map.invalidateSize(); }
-        function recentralizar(){ map.flyTo([userLat,userLon],18); }
+        function abrirRaioX(i){ vIdx=i; document.getElementById('pecas-modal').style.display='block'; document.getElementById('foto-tecnica-img').src=veiculos[i].fotoTecnica; px=0; py=0; sc=1; cv.style.transform='scale(1)'; renderPins(); renderListaPecas(); }
+        function fecharPecas(){ document.getElementById('pecas-modal').style.display='none'; }
+        function fecharDrawer(){ document.getElementById('peca-drawer').style.transform='translateX(110%)'; }
+        function confirmarPeca(){
+            const n=document.getElementById('n-p').value; if(!n) return;
+            veiculos[vIdx].pecas.push({x:pX, y:pY, nome:n, custo:document.getElementById('c-p').value, desgaste:document.getElementById('d-p').value});
+            localStorage.setItem('veiculos', JSON.stringify(veiculos)); fecharDrawer(); renderPins(); renderListaPecas();
+        }
+        function renderPins(){
+            const c=document.getElementById('pins-container'); c.innerHTML='';
+            veiculos[vIdx].pecas.forEach(p=>{ const cor=p.desgaste>85?'#f43f5e':var(--neon); c.innerHTML+=`<div class="pin-micro" style="left:${p.x}px;top:${p.y}px;background:${cor}"></div>`; });
+        }
+        function renderListaPecas(){
+            const l=document.getElementById('lista-pecas-raiox'); l.innerHTML='';
+            veiculos[vIdx].pecas.forEach((p,i)=>{ l.innerHTML+=`<div class="glass p-5 flex justify-between items-center"><div class="flex flex-col"><span class="text-[10px] font-black text-yellow-500 uppercase">${p.nome}</span><span class="text-[9px] text-gray-500">Desgaste: ${p.desgaste}%</span></div><button onclick="removeP(${i})" class="text-red-500 font-bold px-2">Remover</button></div>`; });
+        }
+        function removeP(i){ if(confirm("Remover peça?")){ veiculos[vIdx].pecas.splice(i,1); localStorage.setItem('veiculos', JSON.stringify(veiculos)); renderPins(); renderListaPecas(); }}
+
+        // --- GARAGEM E HISTORICO ---
+        function subirFoto(i,t){ const r=new FileReader(); r.onload=e=>{ if(t==='p') tempP=e.target.result; else tempT=e.target.result; }; r.readAsDataURL(i.files[0]); }
+        function addVeiculo(){ const n=document.getElementById('g-nome').value; if(!n||!tempP) return alert("Faltam fotos!"); veiculos.push({nome:n, foto:tempP, fotoTecnica:tempT, pecas:[]}); localStorage.setItem('veiculos', JSON.stringify(veiculos)); renderGaragem(); }
+        function renderGaragem(){
+            const l=document.getElementById('lista-garagem'); l.innerHTML='';
+            veiculos.forEach((v,i)=>{
+                l.innerHTML += `<div class="glass p-4 flex items-center"><img src="${v.foto}" class="w-14 h-14 rounded-2xl object-cover mr-4 border border-white/10"><div class="flex-1 font-black text-xs uppercase">${v.nome}</div><div class="flex gap-2"><button onclick="selV(${i})" class="bg-white text-black px-4 py-2 rounded-xl text-[9px] font-black">USAR</button><button onclick="abrirRaioX(${i})" class="bg-yellow-500 text-black px-4 py-2 rounded-xl text-[9px] font-black">RAIO-X</button></div></div>`;
+            });
+        }
+        function selV(i){ vIdx=i; tSel.n=veiculos[i].nome; document.getElementById('v-txt').innerText=veiculos[i].nome; showTab('dash'); }
+        function renderHistorico(){
+            const l=document.getElementById('lista-historico'); l.innerHTML='';
+            historico.forEach((h,i)=>{ l.innerHTML+=`<div class="glass p-4 flex justify-between items-center"><div class="flex flex-col"><span class="text-[8px] font-bold text-gray-500">${h.data}</span><span class="text-sm font-black">${h.km} KM</span></div><button onclick="baixarCSV(${i})" class="text-yellow-500 text-xl">📥</button></div>`; });
+        }
+        function finalizarViagem(){ if(totalDist<100) return alert("Distância insuficiente."); historico.unshift({data:new Date().toLocaleString('pt-BR'), km:(totalDist/1000).toFixed(2), detalhes:logSegundos}); localStorage.setItem('historico', JSON.stringify(historico.slice(0,10))); location.reload(); }
+        function baixarCSV(i){ const h=historico[i]; let c="Hora;Velocidade\n"; h.detalhes.forEach(d=>c+=`${d.h};${d.v}\n`); const b=new Blob([c],{type:'text/csv'}); const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download=`viagem_${i}.csv`; a.click(); }
+        function recentralizar(){ map.flyTo([userLat,userLon], 18); }
         function bloquear(){ document.getElementById('lock-screen').style.display='flex'; }
-        function desbloquear(){ if(confirm("Sair do bloqueio?")) document.getElementById('lock-screen').style.display='none'; }
+        function desbloquear(){ if(confirm("Desbloquear?")) document.getElementById('lock-screen').style.display='none'; }
     </script>
 </body>
 </html>
