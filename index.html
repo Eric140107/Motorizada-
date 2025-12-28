@@ -1,14 +1,14 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-pt">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AutoMonitor Fullscreen</title>
+    <title>AutoMonitor Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         /* MAPA EM TELA CHEIA */
-        #map { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
+        #map { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; background: #000; }
         
         /* SOBREPOSIÇÕES */
         .overlay { position: fixed; z-index: 10; pointer-events: none; }
@@ -17,16 +17,21 @@
         .tab-content { display: none; height: 100vh; width: 100vw; }
         .tab-content.active { display: block; }
 
-        /* Estilo Vidro (Glassmorphism) */
-        .glass { background: rgba(17, 24, 39, 0.75); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
+        /* Efeito de Vidro */
+        .glass { background: rgba(17, 24, 39, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); shadow: 0 8px 32px rgba(0,0,0,0.5); }
 
+        /* Marcador Pulsante */
         .custom-marker {
             display: flex; align-items: center; justify-content: center;
-            font-size: 28px; background: rgba(59, 130, 246, 0.3);
+            font-size: 26px; background: rgba(59, 130, 246, 0.3);
             border: 2px solid white; border-radius: 50%;
             width: 45px !important; height: 45px !important;
             box-shadow: 0 0 20px rgba(59, 130, 246, 0.8);
+            animation: pulse 2s infinite;
         }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+        
+        .tipo-btn.active { border: 2px solid #eab308; background: rgba(234, 179, 8, 0.2); }
     </style>
 </head>
 <body class="bg-black text-white overflow-hidden">
@@ -34,53 +39,57 @@
     <main id="dash" class="tab-content active">
         <div id="map"></div>
 
-        <div class="overlay top-4 left-4 right-4 flex justify-between items-start">
-            <div class="glass p-4 rounded-3xl interactive flex flex-col items-center min-w-[100px]">
+        <div class="overlay top-6 left-4 right-4 flex justify-between items-start">
+            <div class="glass p-4 rounded-3xl interactive flex flex-col items-center min-w-[110px]">
                 <span id="vel-display" class="text-5xl font-black text-yellow-400">0</span>
-                <span class="text-[10px] font-bold text-gray-400">KM/H</span>
+                <span class="text-[10px] font-bold text-gray-400 tracking-widest uppercase">KM/H</span>
             </div>
 
-            <div class="glass p-3 rounded-2xl interactive text-right max-w-[150px]">
-                <p id="veiculo-atual-nome" class="text-sm font-bold text-yellow-500 truncate italic">S/ Veículo</p>
-                <p id="status-gps" class="text-[9px] font-black text-red-500 uppercase tracking-widest">GPS Buscando...</p>
+            <div class="glass p-3 rounded-2xl interactive text-right max-w-[160px]">
+                <p id="veiculo-atual-nome" class="text-sm font-bold text-yellow-500 truncate italic leading-tight">S/ Veículo</p>
+                <p id="status-gps" class="text-[9px] font-black text-red-500 uppercase tracking-tighter">GPS a procurar...</p>
             </div>
         </div>
 
-        <div class="overlay bottom-24 right-4 interactive">
-            <button onclick="recentralizar()" id="btn-recenter" class="glass w-14 h-14 rounded-full flex items-center justify-center text-2xl border-2 border-yellow-500 shadow-lg opacity-50 transition-opacity">
+        <div class="overlay bottom-28 right-6 interactive">
+            <button onclick="recentralizar()" id="btn-recenter" class="glass w-14 h-14 rounded-full flex items-center justify-center text-2xl border-2 border-yellow-500 opacity-40 transition-opacity shadow-2xl">
                 📍
             </button>
         </div>
     </main>
 
     <main id="garagem" class="tab-content glass overflow-y-auto p-6 relative z-[100]">
-        <div class="flex justify-between items-center mb-6">
-            <h2 class="text-2xl font-black italic text-yellow-500">MINHA GARAGEM</h2>
-            <button onclick="showTab('dash')" class="text-sm bg-gray-700 px-4 py-1 rounded-full uppercase font-bold">Voltar ao Mapa</button>
+        <div class="flex justify-between items-center mb-8">
+            <h2 class="text-2xl font-black italic text-yellow-500 tracking-tighter">MINHA GARAGEM</h2>
+            <button onclick="showTab('dash')" class="text-xs bg-gray-700 px-4 py-2 rounded-full uppercase font-bold interactive">Fechar</button>
         </div>
         
-        <div class="bg-gray-800/50 p-5 rounded-3xl border border-gray-700 space-y-4 mb-8">
-            <img id="preview-img" class="hidden w-full h-40 object-cover rounded-2xl border-2 border-yellow-500 mb-2">
-            <input type="text" id="nome" placeholder="Apelido do Veículo" class="w-full p-4 rounded-xl bg-gray-900 border border-gray-700 outline-none focus:border-yellow-500">
+        <div class="bg-gray-800/40 p-6 rounded-3xl border border-gray-700 space-y-5 mb-10">
+            <img id="preview-img" class="hidden w-full h-48 object-cover rounded-2xl border-2 border-yellow-500 shadow-lg">
             
-            <div class="flex justify-around bg-gray-900 p-2 rounded-2xl border border-gray-700">
-                <button onclick="setTipo('Bicicleta', '🚲')" class="tipo-btn p-3 text-2xl">🚲</button>
-                <button onclick="setTipo('Moto', '🏍️')" class="tipo-btn p-3 text-2xl">🏍️</button>
-                <button onclick="setTipo('Carro', '🚗')" class="tipo-btn p-3 text-2xl">🚗</button>
+            <input type="text" id="nome" placeholder="Apelido da Máquina" class="interactive w-full p-4 rounded-xl bg-gray-900/80 border border-gray-600 outline-none focus:border-yellow-500 text-white">
+            
+            <div class="flex justify-around bg-gray-950 p-3 rounded-2xl border border-gray-700 interactive">
+                <button onclick="setTipo('Bicicleta', '🚲')" class="tipo-btn p-3 text-3xl transition-transform active:scale-125">🚲</button>
+                <button onclick="setTipo('Moto', '🏍️')" class="tipo-btn p-3 text-3xl transition-transform active:scale-125">🏍️</button>
+                <button onclick="setTipo('Carro', '🚗')" class="tipo-btn p-3 text-3xl transition-transform active:scale-125">🚗</button>
             </div>
             
-            <input type="file" id="foto" accept="image/*" onchange="previewFoto(this)" class="hidden">
-            <button onclick="document.getElementById('foto').click()" class="w-full bg-gray-700 p-3 rounded-xl text-xs font-bold uppercase tracking-widest">📸 Adicionar Foto</button>
-            <button onclick="salvarVeiculo()" class="w-full bg-yellow-500 text-black p-4 rounded-2xl font-black uppercase shadow-lg shadow-yellow-500/40">Salvar Máquina</button>
+            <input type="file" id="foto" accept="image/*" onchange="processarFoto(this)" class="hidden">
+            <button onclick="document.getElementById('foto').click()" class="interactive w-full bg-gray-700 p-4 rounded-xl text-xs font-bold uppercase tracking-widest">📸 Tirar ou Escolher Foto</button>
+            
+            <button onclick="salvarVeiculo()" class="interactive w-full bg-yellow-500 text-black p-5 rounded-2xl font-black uppercase shadow-lg shadow-yellow-500/30 active:scale-95 transition-transform">Guardar Veículo</button>
         </div>
 
-        <div id="lista-veiculos" class="space-y-4 pb-32"></div>
+        <h3 class="text-sm font-black text-gray-500 mb-4 uppercase tracking-widest">Veículos Registados</h3>
+        <div id="lista-veiculos" class="space-y-4 pb-32 interactive"></div>
     </main>
 
-    <nav class="overlay bottom-6 left-6 right-6 flex justify-around p-3 glass rounded-full interactive">
+    <nav class="overlay bottom-8 left-8 right-8 flex justify-around p-4 glass rounded-full interactive">
         <button onclick="showTab('dash')" class="flex flex-col items-center">
             <span class="text-[10px] font-black tracking-widest text-yellow-500">MAPA</span>
         </button>
+        <div class="w-[1px] h-4 bg-gray-700"></div>
         <button onclick="showTab('garagem')" class="flex flex-col items-center">
             <span class="text-[10px] font-black tracking-widest text-gray-400">GARAGEM</span>
         </button>
@@ -88,7 +97,8 @@
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        let map, marker, userLat, userLon, veiculos = JSON.parse(localStorage.getItem('veiculos') || '[]');
+        let map, marker, userLat, userLon;
+        let veiculos = JSON.parse(localStorage.getItem('veiculos') || '[]');
         let autoCenter = true; 
         let tipoEscolhido = { nome: '', icone: '📍' };
 
@@ -101,20 +111,20 @@
         function showTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
             document.getElementById(tabId).classList.add('active');
-            if(tabId === 'dash') setTimeout(() => map.invalidateSize(), 100);
+            if(tabId === 'dash') setTimeout(() => map.invalidateSize(), 150);
         }
 
+        // --- MAPA E GPS ---
         function initMap() {
             map = L.map('map', { zoomControl: false, attributionControl: false }).setView([0, 0], 2);
             L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
-            
             updateMarkerIcon('📍');
 
-            // DETECTA QUANDO O USUÁRIO EXPLORA O MAPA
             map.on('movestart', (e) => {
-                if (e.hard) return; // Se foi movido pelo código, ignora
-                autoCenter = false;
-                document.getElementById('btn-recenter').classList.remove('opacity-50');
+                if (!e.hard) {
+                    autoCenter = false;
+                    document.getElementById('btn-recenter').classList.remove('opacity-40');
+                }
             });
         }
 
@@ -130,8 +140,8 @@
 
         function recentralizar() {
             autoCenter = true;
-            document.getElementById('btn-recenter').classList.add('opacity-50');
-            if(userLat) map.flyTo([userLat, userLon], 18, { animate: true, duration: 1 });
+            document.getElementById('btn-recenter').classList.add('opacity-40');
+            if(userLat) map.flyTo([userLat, userLon], 18);
         }
 
         function startTracking() {
@@ -142,66 +152,96 @@
                     const speed = pos.coords.speed ? (pos.coords.speed * 3.6).toFixed(0) : 0;
                     
                     document.getElementById('vel-display').innerText = speed;
-                    document.getElementById('status-gps').innerText = "GPS OK";
-                    document.getElementById('status-gps').className = "text-[9px] font-black text-green-500 uppercase tracking-widest";
+                    document.getElementById('status-gps').innerText = "GPS ATIVO";
+                    document.getElementById('status-gps').className = "text-[9px] font-black text-green-500 uppercase";
                     
-                    // O marcador SEMPRE atualiza a posição no mundo
                     marker.setLatLng([userLat, userLon]);
-                    
-                    // A câmera SÓ segue se o autoCenter estiver ligado
-                    if(autoCenter) {
-                        map.setView([userLat, userLon], 18);
-                    }
+                    if(autoCenter) map.setView([userLat, userLon], 18);
                 }, null, { enableHighAccuracy: true });
             }
         }
 
-        // LÓGICA DE GARAGEM
-        function setTipo(nome, icone) {
-            tipoEscolhido = { nome, icone };
-            document.querySelectorAll('.tipo-btn').forEach(b => b.style.filter = 'grayscale(1)');
-            event.currentTarget.style.filter = 'grayscale(0)';
-        }
-
-        function previewFoto(input) {
+        // --- GESTÃO DE FOTOS (COM COMPRESSÃO) ---
+        function processarFoto(input) {
             const preview = document.getElementById('preview-img');
             if (input.files && input.files[0]) {
                 const reader = new FileReader();
-                reader.onload = (e) => { preview.src = e.target.result; preview.style.display = 'block'; }
+                reader.onload = (e) => {
+                    const img = new Image();
+                    img.src = e.target.result;
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        const MAX_WIDTH = 600;
+                        const scale = MAX_WIDTH / img.width;
+                        canvas.width = MAX_WIDTH;
+                        canvas.height = img.height * scale;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                        
+                        // Guarda como JPEG comprimido para poupar espaço no telemóvel
+                        const compressedData = canvas.toDataURL('image/jpeg', 0.7);
+                        preview.src = compressedData;
+                        preview.style.display = 'block';
+                    }
+                };
                 reader.readAsDataURL(input.files[0]);
             }
         }
 
+        function setTipo(nome, icone) {
+            tipoEscolhido = { nome, icone };
+            document.querySelectorAll('.tipo-btn').forEach(b => b.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+        }
+
         function salvarVeiculo() {
             const nome = document.getElementById('nome').value;
-            if (!nome || !tipoEscolhido.nome) return alert("Preencha o nome e o tipo!");
+            const preview = document.getElementById('preview-img');
+            
+            if (!nome || !tipoEscolhido.nome) {
+                alert("Por favor, preencha o nome e selecione o tipo!");
+                return;
+            }
 
-            veiculos.push({
-                id: Date.now(),
-                nome,
-                tipo: tipoEscolhido.nome,
-                icone: tipoEscolhido.icone,
-                foto: document.getElementById('preview-img').src !== "#" ? document.getElementById('preview-img').src : 'https://via.placeholder.com/300'
-            });
+            try {
+                const novo = {
+                    id: Date.now(),
+                    nome,
+                    tipo: tipoEscolhido.nome,
+                    icone: tipoEscolhido.icone,
+                    foto: preview.src !== "#" ? preview.src : 'https://via.placeholder.com/300'
+                };
 
-            localStorage.setItem('veiculos', JSON.stringify(veiculos));
-            renderVeiculos();
-            showTab('dash');
+                veiculos.push(novo);
+                localStorage.setItem('veiculos', JSON.stringify(veiculos));
+                
+                // Limpar e atualizar
+                document.getElementById('nome').value = '';
+                preview.style.display = 'none';
+                preview.src = '#';
+                renderVeiculos();
+                alert("Veículo guardado na garagem!");
+            } catch (e) {
+                alert("Erro: Memória cheia. Apague veículos antigos.");
+            }
         }
 
         function renderVeiculos() {
             const container = document.getElementById('lista-veiculos');
-            container.innerHTML = '';
+            container.innerHTML = veiculos.length === 0 ? '<p class="text-gray-600 text-center text-xs">A garagem está vazia.</p>' : '';
+            
             veiculos.forEach((v, i) => {
                 container.innerHTML += `
-                    <div class="bg-gray-800/80 rounded-3xl overflow-hidden border border-gray-700 flex p-3 items-center">
-                        <img src="${v.foto}" class="w-16 h-16 rounded-2xl object-cover mr-4">
+                    <div class="bg-gray-900/60 rounded-3xl overflow-hidden border border-gray-700 flex p-3 items-center shadow-lg">
+                        <img src="${v.foto}" class="w-20 h-20 rounded-2xl object-cover mr-4 border border-gray-700">
                         <div class="flex-1">
-                            <h3 class="font-black text-yellow-500 uppercase italic text-sm">${v.nome}</h3>
-                            <p class="text-[9px] text-gray-400 font-bold uppercase">${v.tipo}</p>
+                            <h3 class="font-black text-yellow-500 uppercase italic text-sm leading-none">${v.nome}</h3>
+                            <p class="text-[9px] text-gray-500 font-bold uppercase mt-1">${v.icone} ${v.tipo}</p>
                         </div>
-                        <button onclick="selecionar(${i})" class="bg-yellow-500 text-black px-4 py-2 rounded-xl text-[10px] font-black uppercase mr-2">Usar</button>
-                        <button onclick="apagar(${i})" class="text-red-500 text-xl font-bold">✕</button>
+                        <div class="flex flex-col gap-2">
+                            <button onclick="selecionar(${i})" class="bg-white text-black px-4 py-2 rounded-xl text-[10px] font-black uppercase">Usar</button>
+                            <button onclick="apagar(${i})" class="text-red-500 text-xs font-bold px-4 py-1">Apagar</button>
+                        </div>
                     </div>
                 `;
             });
@@ -216,7 +256,7 @@
         }
 
         function apagar(i) {
-            if(confirm("Excluir?")) {
+            if(confirm("Deseja remover este veículo da garagem?")) {
                 veiculos.splice(i, 1);
                 localStorage.setItem('veiculos', JSON.stringify(veiculos));
                 renderVeiculos();
