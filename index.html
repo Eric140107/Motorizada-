@@ -3,37 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Astra Monitor - Ultra</title>
+    <title>Astra Monitor - Black Mode</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
-        :root { --red: #ff0033; --blue: #00f2ff; --glass: rgba(10, 10, 10, 0.95); }
+        :root { --red: #ff0033; --blue: #00f2ff; --glass: rgba(15, 15, 15, 0.98); }
         html, body { background: #000; color: #fff; height: 100%; margin: 0; overflow: hidden; font-family: 'Inter', sans-serif; }
         
-        /* ESTILO DO MAPA - MANTÉM FUNDO PRETO E RUAS NEON */
+        /* MAPA: FUNDO TOTALMENTE PRETO */
         #map { position: fixed; inset: 0; z-index: 1; background: #000 !important; }
+        
+        /* FILTRO EXCLUSIVO PARA O MAPA (Ruas Neon, Fundo Preto) */
         .leaflet-tile-container { 
-            filter: invert(100%) hue-rotate(180deg) brightness(0.8) contrast(1.2) !important;
+            filter: invert(100%) hue-rotate(180deg) brightness(0.6) contrast(1.3) !important;
         }
-        /* PROTEÇÃO: Marcadores e linhas NÃO recebem filtros */
-        .leaflet-marker-pane, .leaflet-overlay-pane { filter: none !important; }
 
+        /* PROTEÇÃO ABSOLUTA: Emojis, Pins e Linhas não mudam de cor */
+        .leaflet-marker-pane, .leaflet-overlay-pane, .leaflet-top, .leaflet-bottom { 
+            filter: none !important; 
+        }
+
+        /* INTERFACE */
         .tab-content { display: none; height: 100vh; width: 100vw; overflow-y: auto; padding: 15px; padding-bottom: 140px; position: relative; z-index: 50; pointer-events: none; }
         .tab-content.active { display: block; }
         .tab-content > * { pointer-events: auto; }
 
-        .glass-pill { background: var(--glass); backdrop-filter: blur(15px); border-radius: 24px; border: 1px solid rgba(255,255,255,0.1); }
+        .glass-pill { background: var(--glass); backdrop-filter: blur(20px); border-radius: 24px; border: 1px solid rgba(255,255,255,0.1); }
         .glow-red { border-color: var(--red); box-shadow: 0 0 15px var(--red); }
         .glow-blue { border-color: var(--blue); box-shadow: 0 0 15px var(--blue); }
 
-        .custom-marker { font-size: 40px; display: flex; align-items: center; justify-content: center; text-shadow: 0 0 10px #fff; }
+        /* Marcador com Emoji Intocado */
+        .custom-marker { font-size: 42px; display: flex; align-items: center; justify-content: center; filter: drop-shadow(0 0 10px rgba(255,255,255,0.4)); }
 
+        nav { position: fixed; bottom: 20px; left: 15px; right: 15px; height: 75px; display: flex; justify-content: space-around; align-items: center; z-index: 5000; background: #0a0a0a; border: 1px solid rgba(255,255,255,0.1); border-radius: 30px; }
+        
         /* RAIO-X VIEWPORT */
-        #foto-tecnica-viewport { position: relative; width: 100%; aspect-ratio: 16/9; overflow: hidden; border-radius: 20px; background: #050505; border: 1px solid #333; touch-action: none; }
+        #foto-tecnica-viewport { position: relative; width: 100%; aspect-ratio: 16/9; overflow: hidden; border-radius: 20px; background: #000; border: 1px solid #333; touch-action: none; }
         #foto-tecnica-canvas { position: absolute; transform-origin: 0 0; width: 100%; height: 100%; }
         .pin-micro { position: absolute; width: 16px; height: 16px; border-radius: 50%; background: var(--blue); border: 2px solid #fff; box-shadow: 0 0 10px var(--blue); transform: translate(-50%, -50%); }
-
-        nav { position: fixed; bottom: 20px; left: 15px; right: 15px; height: 75px; display: flex; justify-content: space-around; align-items: center; z-index: 5000; background: #000; border: 1px solid rgba(255,255,255,0.1); border-radius: 30px; }
     </style>
 </head>
 <body>
@@ -48,11 +55,11 @@
             </div>
             <div class="flex gap-2">
                 <div class="glass-pill glow-red flex-1 p-3 flex flex-col items-center">
-                    <span class="text-[8px] font-black text-red-500 uppercase">Trip Odo</span>
+                    <span class="text-[8px] font-black text-red-500 uppercase">Trip</span>
                     <span id="dist-txt" class="text-lg font-bold">0.00</span>
                 </div>
                 <div class="glass-pill glow-blue flex-1 p-3 flex flex-col items-center">
-                    <span class="text-[8px] font-black text-cyan-400 uppercase">Sistema</span>
+                    <span class="text-[8px] font-black text-cyan-400 uppercase">Status</span>
                     <span id="v-txt" class="text-[10px] font-bold">Online</span>
                 </div>
             </div>
@@ -66,10 +73,10 @@
     <main id="garagem" class="tab-content">
         <div class="space-y-6 pb-20">
             <div class="glass-pill glow-red p-6">
-                <h2 id="garage-title" class="text-xs font-black uppercase text-red-500 mb-4 text-center tracking-widest">Configuração</h2>
-                <input type="text" id="g-nome" placeholder="Nome do Veículo" class="w-full bg-white/5 p-4 rounded-xl border border-white/10 mb-2 outline-none">
+                <h2 id="garage-title" class="text-xs font-black uppercase text-red-500 mb-4 text-center">Configurar Veículo</h2>
+                <input type="text" id="g-nome" placeholder="Nome" class="w-full bg-white/5 p-4 rounded-xl border border-white/10 mb-2 outline-none">
                 <div class="grid grid-cols-2 gap-2 mb-2">
-                    <input type="text" id="g-placa" placeholder="ID/Placa" class="bg-white/5 p-4 rounded-xl border border-white/10 outline-none">
+                    <input type="text" id="g-placa" placeholder="Placa" class="bg-white/5 p-4 rounded-xl border border-white/10 outline-none">
                     <select id="g-tipo" class="bg-black p-4 rounded-xl border border-white/10 outline-none text-white">
                         <option value="🏎️">Carro</option>
                         <option value="🏍️">Motorizada</option>
@@ -83,8 +90,8 @@
             </div>
 
             <div class="glass-pill glow-blue p-4 flex gap-2">
-                <button onclick="exportarBackup()" class="flex-1 bg-white/5 p-3 rounded-xl text-[9px] font-bold">EXPORTAR JSON</button>
-                <button onclick="document.getElementById('rest-input').click()" class="flex-1 bg-white/5 p-3 rounded-xl text-[9px] font-bold">IMPORTAR</button>
+                <button onclick="exportarBackup()" class="flex-1 bg-white/5 p-3 rounded-xl text-[9px] font-bold italic">EXPORTAR JSON</button>
+                <button onclick="document.getElementById('rest-input').click()" class="flex-1 bg-white/5 p-3 rounded-xl text-[9px] font-bold italic">IMPORTAR</button>
                 <input type="file" id="rest-input" class="hidden" onchange="importarBackup(this)">
             </div>
 
@@ -93,10 +100,10 @@
         </div>
     </main>
 
-    <div id="pecas-modal" class="hidden fixed inset-0 z-[6000] bg-black/98 p-4 overflow-y-auto">
+    <div id="pecas-modal" class="hidden fixed inset-0 z-[6000] bg-black/95 p-4 overflow-y-auto">
         <div class="flex justify-between items-center mb-4">
-            <h3 class="text-cyan-400 font-bold text-[10px] uppercase">Scanner Raio-X</h3>
-            <button onclick="fecharPecas()" class="glass-pill px-6 py-2 text-[10px] font-bold">FECHAR</button>
+            <h3 class="text-cyan-400 font-bold text-[10px] uppercase">Scanner de Peças</h3>
+            <button onclick="fecharPecas()" class="glass-pill px-6 py-2 text-[10px] font-bold uppercase">Sair</button>
         </div>
         <div id="foto-tecnica-viewport">
             <div id="foto-tecnica-canvas">
@@ -107,13 +114,13 @@
         <div id="lista-pecas-raiox" class="mt-4 space-y-2 pb-24"></div>
         <div id="peca-drawer" class="fixed inset-y-0 right-0 w-64 glass-pill m-2 translate-x-[115%] transition-transform duration-300 z-[6100] p-6 flex flex-col justify-center">
             <input type="text" id="n-p" placeholder="Nome da Peça" class="bg-white/5 p-4 rounded-xl mb-4 outline-none">
-            <button onclick="confirmarPeca()" class="bg-cyan-500 text-black p-4 rounded-xl font-black uppercase text-xs">Adicionar Pin</button>
+            <button onclick="confirmarPeca()" class="bg-cyan-500 text-black p-4 rounded-xl font-black uppercase text-xs">Salvar Pin</button>
         </div>
     </div>
 
     <nav>
-        <button onclick="showTab('dash')" class="flex flex-col items-center"><span class="text-2xl">📡</span><span class="text-[8px] font-black text-red-500">PAINEL</span></button>
-        <button onclick="showTab('garagem')" class="flex flex-col items-center"><span class="text-2xl">⚙️</span><span class="text-[8px] font-black text-cyan-400">GARAGEM</span></button>
+        <button onclick="showTab('dash')" class="flex flex-col items-center"><span class="text-2xl">📡</span><span class="text-[8px] font-black text-red-500 uppercase">Painel</span></button>
+        <button onclick="showTab('garagem')" class="flex flex-col items-center"><span class="text-2xl">⚙️</span><span class="text-[8px] font-black text-cyan-400 uppercase">Garagem</span></button>
     </nav>
 
     <input type="file" id="f-p" class="hidden" onchange="subirFoto(this,'p')">
@@ -125,9 +132,7 @@
         let veiculos = JSON.parse(localStorage.getItem('veiculos') || '[]');
         let historico = JSON.parse(localStorage.getItem('historico') || '[]');
         let tempP, tempT, vIdx = null, editIdx = null, route = [], totalDist=0, lastCoord=null, logViagem = [];
-        let sc=1, px=0, py=0, evH=[], pD=-1, sx, sy, isP=false, pX, pY, isZooming=false, isFirst=true;
-
-        const vp=document.getElementById('foto-tecnica-viewport'), cv=document.getElementById('foto-tecnica-canvas');
+        let sc=1, px=0, py=0, evH=[], pD=-1, sx, sy, isP=false, pX, pY, isZooming=false, firstFix=true;
 
         window.onload = () => {
             map = L.map('map',{zoomControl:false, attributionControl:false}).setView([0,0],2);
@@ -151,14 +156,14 @@
                 }
                 lastCoord = {lat:userLat, lon:userLon};
 
-                let ic = (vIdx !== null) ? veiculos[vIdx].tipo : '🏎️';
+                let emoji = (vIdx !== null) ? veiculos[vIdx].tipo : '🏎️';
                 if(!marker) {
-                    marker = L.marker([userLat,userLon],{icon: L.divIcon({className:'custom-marker', html: ic})}).addTo(map);
+                    marker = L.marker([userLat,userLon],{icon: L.divIcon({className:'custom-marker', html: emoji})}).addTo(map);
                 } else {
                     marker.setLatLng([userLat,userLon]);
-                    marker.setIcon(L.divIcon({className:'custom-marker', html: ic}));
+                    marker.setIcon(L.divIcon({className:'custom-marker', html: emoji}));
                 }
-                if(isFirst){ map.setView([userLat,userLon], 17); isFirst=false; }
+                if(firstFix){ map.setView([userLat,userLon], 17); firstFix=false; }
             }, null, {enableHighAccuracy:true});
 
             initRaioX(); renderGaragem(); renderHistorico();
@@ -167,8 +172,9 @@
         function showTab(id){ document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active')); document.getElementById(id).classList.add('active'); map.invalidateSize(); }
         function recentralizar(){ map.flyTo([userLat,userLon], 17); }
 
-        // LOGICA RAIO-X
+        // RAIO-X LOGIC (MANTIDA)
         function initRaioX(){
+            const vp=document.getElementById('foto-tecnica-viewport'), cv=document.getElementById('foto-tecnica-canvas');
             vp.addEventListener('pointerdown', e=>{ evH.push(e); isP=true; sx=e.clientX-px; sy=e.clientY-py; if(evH.length>=2) isZooming=true; });
             vp.addEventListener('pointermove', e=>{
                 const i=evH.findIndex(v=>v.pointerId===e.pointerId); evH[i]=e;
@@ -186,7 +192,7 @@
                 evH=evH.filter(v=>v.pointerId!==e.pointerId); if(evH.length<1){ isZooming=false; pD=-1; isP=false; }
             });
         }
-        function abrirRaioX(i){ vIdx=i; document.getElementById('pecas-modal').style.display='block'; document.getElementById('foto-tecnica-img').src=veiculos[i].fotoTecnica; px=0; py=0; sc=1; cv.style.transform='scale(1)'; renderPins(); renderListaPecas(); }
+        function abrirRaioX(i){ vIdx=i; document.getElementById('pecas-modal').style.display='block'; document.getElementById('foto-tecnica-img').src=veiculos[i].fotoTecnica; px=0; py=0; sc=1; document.getElementById('foto-tecnica-canvas').style.transform='scale(1)'; renderPins(); renderListaPecas(); }
         function fecharPecas(){ document.getElementById('pecas-modal').style.display='none'; }
         function fecharDrawer(){ document.getElementById('peca-drawer').style.transform='translateX(115%)'; }
         function confirmarPeca(){
@@ -198,7 +204,7 @@
         function renderListaPecas(){ const l=document.getElementById('lista-pecas-raiox'); l.innerHTML=''; veiculos[vIdx].pecas.forEach((p,i)=>{ l.innerHTML+=`<div class="glass-pill p-3 flex justify-between items-center mb-1"><span class="text-[10px] uppercase font-bold">${p.nome}</span><button onclick="removeP(${i})" class="text-red-500 font-bold px-2">X</button></div>`; }); }
         function removeP(i){ veiculos[vIdx].pecas.splice(i,1); localStorage.setItem('veiculos', JSON.stringify(veiculos)); renderPins(); renderListaPecas(); }
 
-        // GARAGEM E DADOS
+        // CORE FUNCTIONS (MANTIDAS)
         function subirFoto(i,t){ const r=new FileReader(); r.onload=e=>{ if(t==='p') tempP=e.target.result; else tempT=e.target.result; }; r.readAsDataURL(i.files[0]); }
         function salvarVeiculo(){
             const n=document.getElementById('g-nome').value, p=document.getElementById('g-placa').value, t=document.getElementById('g-tipo').value;
@@ -215,11 +221,11 @@
             });
         }
         function selV(i){ vIdx=i; document.getElementById('v-txt').innerText=veiculos[i].nome; showTab('dash'); }
-        function exportarBackup(){ const b = new Blob([JSON.stringify({veiculos, historico})], {type:'application/json'}); const a = document.createElement('a'); a.href=URL.createObjectURL(b); a.download='astra_db.json'; a.click(); }
+        function exportarBackup(){ const b = new Blob([JSON.stringify({veiculos, historico})], {type:'application/json'}); const a = document.createElement('a'); a.href=URL.createObjectURL(b); a.download='astra_backup.json'; a.click(); }
         function importarBackup(input){ const f = new FileReader(); f.onload = e => { const d = JSON.parse(e.target.result); veiculos = d.veiculos; historico = d.historico; localStorage.setItem('veiculos', JSON.stringify(veiculos)); localStorage.setItem('historico', JSON.stringify(historico)); location.reload(); }; f.readAsText(input.files[0]); }
-        function finalizarViagem(){ if(totalDist < 50) return alert("Trip curta"); historico.unshift({data: new Date().toLocaleString(), km: (totalDist/1000).toFixed(2), logs: logViagem}); localStorage.setItem('historico', JSON.stringify(historico.slice(0,10))); location.reload(); }
-        function renderHistorico(){ const l=document.getElementById('lista-historico'); l.innerHTML=''; historico.forEach((h,i)=>{ l.innerHTML += `<div class="glass-pill p-3 flex justify-between items-center"><span class="text-[9px] text-gray-400 font-bold">${h.km}KM - ${h.data}</span><button onclick="exportarCSV(${i})" class="text-cyan-400 font-bold text-[9px]">CSV</button></div>`; }); }
-        function exportarCSV(i){ let csv = "Hora,Velocidade\n"; historico[i].logs.forEach(l => csv += `${l.h},${l.v}\n`); const b = new Blob([csv], {type:'text/csv'}); const a = document.createElement('a'); a.href=URL.createObjectURL(b); a.download='log.csv'; a.click(); }
+        function finalizarViagem(){ if(totalDist < 50) return alert("Trip curta demais"); historico.unshift({data: new Date().toLocaleString(), km: (totalDist/1000).toFixed(2), logs: logViagem}); localStorage.setItem('historico', JSON.stringify(historico.slice(0,15))); location.reload(); }
+        function renderHistorico(){ const l=document.getElementById('lista-historico'); l.innerHTML='<p class="text-[8px] font-bold text-center opacity-50 mb-2">VIAGENS RECENTES</p>'; historico.forEach((h,i)=>{ l.innerHTML += `<div class="glass-pill p-3 flex justify-between items-center"><span class="text-[9px] text-gray-400 font-bold">${h.km}KM - ${h.data}</span><button onclick="exportarCSV(${i})" class="text-cyan-400 font-bold text-[9px]">CSV</button></div>`; }); }
+        function exportarCSV(i){ let csv = "Hora,Velocidade\n"; historico[i].logs.forEach(l => csv += `${l.h},${l.v}\n`); const b = new Blob([csv], {type:'text/csv'}); const a = document.createElement('a'); a.href=URL.createObjectURL(b); a.download='telemetria.csv'; a.click(); }
     </script>
 </body>
 </html>
